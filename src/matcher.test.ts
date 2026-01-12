@@ -1039,4 +1039,168 @@ describe("RuleMatcher", () => {
     });
   });
 
+  describe("matchDetails.matchedBy", () => {
+    it("includes matchedBy info when matching by symbol only", () => {
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
+        rules: [
+          {
+            id: "usdc-to-usdc",
+            enabled: true,
+            match: {
+              in: { symbol: "USDC" },
+              out: { symbol: "USDC" },
+            },
+            fee: { type: "bps", bps: 10, recipient: "fees.near" },
+          },
+        ],
+      };
+
+      const matcher = new RuleMatcher(config, registry);
+      const result = matcher.match({
+        originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+      });
+
+      expect(result.matched).toBe(true);
+      expect(result.matchDetails?.in?.matchedBy).toEqual({ symbol: true });
+      expect(result.matchDetails?.out?.matchedBy).toEqual({ symbol: true });
+    });
+
+    it("includes matchedBy info when matching by blockchain only", () => {
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
+        rules: [
+          {
+            id: "eth-to-polygon",
+            enabled: true,
+            match: {
+              in: { blockchain: "eth" },
+              out: { blockchain: "polygon" },
+            },
+            fee: { type: "bps", bps: 8, recipient: "fees.near" },
+          },
+        ],
+      };
+
+      const matcher = new RuleMatcher(config, registry);
+      const result = matcher.match({
+        originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+      });
+
+      expect(result.matched).toBe(true);
+      expect(result.matchDetails?.in?.matchedBy).toEqual({ blockchain: true });
+      expect(result.matchDetails?.out?.matchedBy).toEqual({ blockchain: true });
+    });
+
+    it("includes matchedBy info when matching by assetId", () => {
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
+        rules: [
+          {
+            id: "exact-pair",
+            enabled: true,
+            match: {
+              in: { assetId: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near" },
+              out: { assetId: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near" },
+            },
+            fee: { type: "bps", bps: 5, recipient: "fees.near" },
+          },
+        ],
+      };
+
+      const matcher = new RuleMatcher(config, registry);
+      const result = matcher.match({
+        originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+      });
+
+      expect(result.matched).toBe(true);
+      expect(result.matchDetails?.in?.matchedBy).toEqual({ assetId: true });
+      expect(result.matchDetails?.out?.matchedBy).toEqual({ assetId: true });
+    });
+
+    it("includes matchedBy info when matching by multiple criteria", () => {
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
+        rules: [
+          {
+            id: "eth-usdc-to-polygon-usdc",
+            enabled: true,
+            match: {
+              in: { blockchain: "eth", symbol: "USDC" },
+              out: { blockchain: "polygon", symbol: "USDC" },
+            },
+            fee: { type: "bps", bps: 5, recipient: "fees.near" },
+          },
+        ],
+      };
+
+      const matcher = new RuleMatcher(config, registry);
+      const result = matcher.match({
+        originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+      });
+
+      expect(result.matched).toBe(true);
+      expect(result.matchDetails?.in?.matchedBy).toEqual({ blockchain: true, symbol: true });
+      expect(result.matchDetails?.out?.matchedBy).toEqual({ blockchain: true, symbol: true });
+    });
+
+    it("includes token info in matchDetails", () => {
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
+        rules: [
+          {
+            id: "usdc-swap",
+            enabled: true,
+            match: {
+              in: { symbol: "USDC" },
+              out: { symbol: "USDC" },
+            },
+            fee: { type: "bps", bps: 10, recipient: "fees.near" },
+          },
+        ],
+      };
+
+      const matcher = new RuleMatcher(config, registry);
+      const result = matcher.match({
+        originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+      });
+
+      expect(result.matched).toBe(true);
+      expect(result.matchDetails?.in?.token.blockchain).toBe("eth");
+      expect(result.matchDetails?.in?.token.symbol).toBe("USDC");
+      expect(result.matchDetails?.out?.token.blockchain).toBe("polygon");
+      expect(result.matchDetails?.out?.token.symbol).toBe("USDC");
+    });
+
+    it("does not include in/out matchDetails when no rule matches", () => {
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
+        rules: [],
+      };
+
+      const matcher = new RuleMatcher(config, registry);
+      const result = matcher.match({
+        originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+      });
+
+      expect(result.matched).toBe(false);
+      expect(result.matchDetails?.originToken).toBeDefined();
+      expect(result.matchDetails?.destinationToken).toBeDefined();
+      expect(result.matchDetails?.in).toBeUndefined();
+      expect(result.matchDetails?.out).toBeUndefined();
+    });
+  });
+
 });

@@ -343,3 +343,67 @@ bun install
 bun test
 bun run typecheck
 ```
+
+## Publishing to npm
+
+### Prerequisites
+
+1. Create an [npm account](https://www.npmjs.com/signup) if you don't have one
+2. Login to npm:
+
+```bash
+npm login
+```
+
+### Publish
+
+1. Update the version in `package.json`:
+
+```bash
+# Patch release (1.0.0 -> 1.0.1)
+npm version patch
+
+# Minor release (1.0.0 -> 1.1.0)
+npm version minor
+
+# Major release (1.0.0 -> 2.0.0)
+npm version major
+```
+
+2. Run tests to ensure everything works:
+
+```bash
+bun test && bun run typecheck
+```
+
+3. Publish to npm:
+
+```bash
+npm publish
+```
+
+### Publishing a scoped package
+
+If you want to publish under a scope (e.g., `@myorg/intents-1click-rule-engine`):
+
+1. Update the `name` in `package.json`:
+
+```json
+{
+  "name": "@myorg/intents-1click-rule-engine"
+}
+```
+
+2. Publish with public access (scoped packages are private by default):
+
+```bash
+npm publish --access public
+```
+
+### Verify publication
+
+After publishing, verify the package is available:
+
+```bash
+npm info intents-1click-rule-engine
+```

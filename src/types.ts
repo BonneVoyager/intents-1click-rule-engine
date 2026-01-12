@@ -45,6 +45,15 @@ export interface SwapRequest {
   amount?: string;
 }
 
+export interface TokenMatchInfo {
+  token: TokenInfo;
+  matchedBy: {
+    assetId?: boolean;
+    blockchain?: boolean;
+    symbol?: boolean;
+  };
+}
+
 export interface MatchResult {
   matched: boolean;
   rule?: Rule;
@@ -52,6 +61,8 @@ export interface MatchResult {
   matchDetails?: {
     originToken: TokenInfo;
     destinationToken: TokenInfo;
+    in?: TokenMatchInfo;
+    out?: TokenMatchInfo;
   };
 }
 

@@ -1,4 +1,4 @@
-import type { Rule, FeeConfig, TokenInfo, TokenMatcher, MatchResult, SwapRequest, TokenRegistry } from "./types";
+import type { Rule, FeeConfig, TokenInfo, TokenMatcher, TokenMatchInfo, MatchResult, SwapRequest, TokenRegistry } from "./types";
 
 export class RuleMatcher {
   private rules: Rule[];
@@ -34,17 +34,29 @@ export class RuleMatcher {
     return this.matchesSinglePattern(pattern, value);
   }
 
-  private matchesToken(matcher: TokenMatcher, token: TokenInfo): boolean {
-    if (matcher.assetId && !this.matchesSinglePattern(matcher.assetId, token.assetId)) {
-      return false;
+  private matchesToken(matcher: TokenMatcher, token: TokenInfo): TokenMatchInfo | null {
+    const matchedBy: TokenMatchInfo["matchedBy"] = {};
+
+    if (matcher.assetId) {
+      if (!this.matchesSinglePattern(matcher.assetId, token.assetId)) {
+        return null;
+      }
+      matchedBy.assetId = true;
     }
-    if (matcher.blockchain && !this.matchesValue(matcher.blockchain, token.blockchain)) {
-      return false;
+    if (matcher.blockchain) {
+      if (!this.matchesValue(matcher.blockchain, token.blockchain)) {
+        return null;
+      }
+      matchedBy.blockchain = true;
     }
-    if (matcher.symbol && !this.matchesValue(matcher.symbol, token.symbol)) {
-      return false;
+    if (matcher.symbol) {
+      if (!this.matchesValue(matcher.symbol, token.symbol)) {
+        return null;
+      }
+      matchedBy.symbol = true;
     }
-    return true;
+
+    return { token, matchedBy };
   }
 
   private isRuleValidNow(rule: Rule): boolean {
@@ -75,15 +87,20 @@ export class RuleMatcher {
       if (!rule.enabled) continue;
       if (!this.isRuleValidNow(rule)) continue;
 
-      const inMatches = this.matchesToken(rule.match.in, originToken);
-      const outMatches = this.matchesToken(rule.match.out, destinationToken);
+      const inMatchInfo = this.matchesToken(rule.match.in, originToken);
+      const outMatchInfo = this.matchesToken(rule.match.out, destinationToken);
 
-      if (inMatches && outMatches) {
+      if (inMatchInfo && outMatchInfo) {
         return {
           matched: true,
           rule,
           fee: rule.fee,
-          matchDetails: { originToken, destinationToken },
+          matchDetails: {
+            originToken,
+            destinationToken,
+            in: inMatchInfo,
+            out: outMatchInfo,
+          },
         };
       }
     }

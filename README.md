@@ -11,9 +11,9 @@ bun add intents-1click-rule-engine
 ## Usage
 
 ```typescript
-import { RuleEngine } from "intents-1click-rule-engine";
+import { RuleEngine, getTotalBps, calculateFee, type FeeConfig } from "intents-1click-rule-engine";
 
-const feeConfig = {
+const feeConfig: FeeConfig = {
   version: "1.0.0",
   default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
   rules: [
@@ -42,15 +42,13 @@ const result = engine.match({
   destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
 });
 
-console.log(result.matched);    // true
-console.log(result.fee.bps);    // 10
-console.log(result.rule?.id);   // "usdc-swaps"
+console.log(result.matched);           // true
+console.log(result.fee);               // { type: "bps", bps: 10, recipient: "fees.near" }
+console.log(result.rule?.id);          // "usdc-swaps"
+console.log(getTotalBps(result.fee));  // 10
 
-// Calculate fee amount from bps
-import { calculateFee, calculateAmountAfterFee } from "intents-1click-rule-engine";
-
-const feeAmount = calculateFee("1000000", result.fee.bps); // "1000" (0.10% of 1000000)
-const amountAfterFee = calculateAmountAfterFee("1000000", result.fee.bps); // "999000"
+// Calculate fee amount
+const feeAmount = calculateFee("1000000", getTotalBps(result.fee)); // "1000" (0.10% of 1000000)
 ```
 
 ## Token Registry
@@ -58,9 +56,9 @@ const amountAfterFee = calculateAmountAfterFee("1000000", result.fee.bps); // "9
 The engine fetches the token list from `https://1click.chaindefuser.com/v0/tokens` to resolve asset IDs to their `blockchain` and `symbol`. This allows rules to match by symbol/blockchain instead of exact asset IDs.
 
 ```
-Swap Request                     Token Registry Lookup
-─────────────                    ─────────────────────
-originAsset: "nep141:eth-..."  → { blockchain: "eth", symbol: "USDC" }
+Swap Request                          Token Registry Lookup
+─────────────                         ─────────────────────
+originAsset: "nep141:eth-..."      → { blockchain: "eth", symbol: "USDC" }
 destinationAsset: "nep141:sol-..." → { blockchain: "sol", symbol: "USDC" }
 ```
 

@@ -340,8 +340,11 @@ const feeConfig = {
 
 A simple browser-based tool for building fee configurations is included:
 
+**Online:** https://bonnevoyager.github.io/intents-1click-rule-engine/
+
+**Local:**
 ```bash
-open rule-builder.html
+open index.html
 ```
 
 Features:

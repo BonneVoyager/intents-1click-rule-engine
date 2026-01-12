@@ -2,19 +2,22 @@
   "name": "intents-1click-rule-engine",
   "version": "1.0.0",
   "description": "Fee configuration rule engine for NEAR Intents 1Click API",
-  "module": "index.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "type": "module",
   "exports": {
     ".": {
-      "import": "./index.ts",
-      "types": "./index.ts"
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
     }
   },
   "files": [
-    "src",
-    "index.ts"
+    "dist"
   ],
   "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "prepublishOnly": "bun run build",
     "test": "bun test",
     "typecheck": "tsc --noEmit"
   },

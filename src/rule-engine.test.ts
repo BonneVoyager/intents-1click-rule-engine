@@ -189,3 +189,63 @@ describe("calculateAmountAfterFee", () => {
     expect(calculateAmountAfterFee("1000000000000000000", 25)).toBe("997500000000000000");
   });
 });
+
+describe("calculateFee input validation", () => {
+  it("throws on invalid amount string", () => {
+    expect(() => calculateFee("abc", 20)).toThrow("not a valid integer string");
+  });
+
+  it("throws on decimal amount string", () => {
+    expect(() => calculateFee("12.5", 20)).toThrow("not a valid integer string");
+  });
+
+  it("throws on empty string amount", () => {
+    expect(() => calculateFee("", 20)).toThrow("empty string");
+  });
+
+  it("throws on whitespace-only string amount", () => {
+    expect(() => calculateFee("   ", 20)).toThrow("empty string");
+  });
+
+  it("throws on negative amount", () => {
+    expect(() => calculateFee("-1000", 20)).toThrow("must be non-negative");
+  });
+
+  it("throws on negative bps", () => {
+    expect(() => calculateFee("1000", -5)).toThrow("must be non-negative");
+  });
+
+  it("throws on bps exceeding 10000 (100%)", () => {
+    expect(() => calculateFee("1000", 10001)).toThrow("exceeds maximum");
+  });
+
+  it("throws on non-integer bps", () => {
+    expect(() => calculateFee("1000", 20.5)).toThrow("must be an integer");
+  });
+
+  it("throws on NaN bps", () => {
+    expect(() => calculateFee("1000", NaN)).toThrow("expected a finite number");
+  });
+
+  it("throws on Infinity bps", () => {
+    expect(() => calculateFee("1000", Infinity)).toThrow("expected a finite number");
+  });
+
+  it("accepts 0 amount", () => {
+    expect(calculateFee("0", 20)).toBe("0");
+  });
+
+  it("accepts maximum 10000 bps (100%)", () => {
+    expect(calculateFee("1000", 10000)).toBe("1000");
+  });
+});
+
+describe("calculateAmountAfterFee input validation", () => {
+  it("throws on invalid amount", () => {
+    expect(() => calculateAmountAfterFee("invalid", 20)).toThrow("not a valid integer string");
+  });
+
+  it("throws on invalid bps", () => {
+    expect(() => calculateAmountAfterFee("1000", -1)).toThrow("must be non-negative");
+  });
+});

@@ -6,6 +6,7 @@ import { validateConfig } from "./validator";
 const DEFAULT_TOKEN_REGISTRY_URL = "https://1click.chaindefuser.com/v0/tokens";
 const DEFAULT_CACHE_TTL_MS = 3600000; // 1 hour
 const BPS_DIVISOR = 10000n;
+const MAX_BPS = 10000; // 100% fee cap
 
 export function getTotalBps(fee: Fee | Fee[]): number {
   if (Array.isArray(fee)) {
@@ -14,14 +15,51 @@ export function getTotalBps(fee: Fee | Fee[]): number {
   return fee.bps;
 }
 
+function parseAmount(amount: string | bigint): bigint {
+  if (typeof amount === "bigint") {
+    return amount;
+  }
+  if (typeof amount !== "string") {
+    throw new Error(`Invalid amount: expected string or bigint, got ${typeof amount}`);
+  }
+  if (amount.trim() === "") {
+    throw new Error("Invalid amount: empty string");
+  }
+  if (!/^-?\d+$/.test(amount)) {
+    throw new Error(`Invalid amount: "${amount}" is not a valid integer string`);
+  }
+  const result = BigInt(amount);
+  if (result < 0n) {
+    throw new Error(`Invalid amount: "${amount}" must be non-negative`);
+  }
+  return result;
+}
+
+function validateBps(bps: number): void {
+  if (typeof bps !== "number" || !Number.isFinite(bps)) {
+    throw new Error(`Invalid bps: expected a finite number, got ${bps}`);
+  }
+  if (!Number.isInteger(bps)) {
+    throw new Error(`Invalid bps: ${bps} must be an integer`);
+  }
+  if (bps < 0) {
+    throw new Error(`Invalid bps: ${bps} must be non-negative`);
+  }
+  if (bps > MAX_BPS) {
+    throw new Error(`Invalid bps: ${bps} exceeds maximum of ${MAX_BPS} (100%)`);
+  }
+}
+
 export function calculateFee(amount: string | bigint, bps: number): string {
-  const amountBigInt = typeof amount === "string" ? BigInt(amount) : amount;
+  const amountBigInt = parseAmount(amount);
+  validateBps(bps);
   const fee = (amountBigInt * BigInt(bps)) / BPS_DIVISOR;
   return fee.toString();
 }
 
 export function calculateAmountAfterFee(amount: string | bigint, bps: number): string {
-  const amountBigInt = typeof amount === "string" ? BigInt(amount) : amount;
+  const amountBigInt = parseAmount(amount);
+  validateBps(bps);
   const fee = BigInt(calculateFee(amountBigInt, bps));
   return (amountBigInt - fee).toString();
 }

@@ -1039,6 +1039,174 @@ describe("RuleMatcher", () => {
     });
   });
 
+  describe("invalid date handling", () => {
+    it("throws on invalid valid_from date string", () => {
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
+        rules: [
+          {
+            id: "invalid-date",
+            enabled: true,
+            valid_from: "not-a-valid-date",
+            match: {
+              in: { symbol: "USDC" },
+              out: { symbol: "USDC" },
+            },
+            fee: { type: "bps", bps: 10, recipient: "fees.near" },
+          },
+        ],
+      };
+
+      const matcher = new RuleMatcher(config, registry);
+      expect(() =>
+        matcher.match({
+          originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+          destinationAsset: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
+        })
+      ).toThrow('Invalid valid_from: "not-a-valid-date" is not a valid date string');
+    });
+
+    it("throws on invalid valid_until date string", () => {
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
+        rules: [
+          {
+            id: "invalid-date",
+            enabled: true,
+            valid_until: "garbage",
+            match: {
+              in: { symbol: "USDC" },
+              out: { symbol: "USDC" },
+            },
+            fee: { type: "bps", bps: 10, recipient: "fees.near" },
+          },
+        ],
+      };
+
+      const matcher = new RuleMatcher(config, registry);
+      expect(() =>
+        matcher.match({
+          originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+          destinationAsset: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
+        })
+      ).toThrow('Invalid valid_until: "garbage" is not a valid date string');
+    });
+  });
+
+  describe("assetId array matching", () => {
+    it("matches when assetId is in array", () => {
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
+        rules: [
+          {
+            id: "multiple-assets",
+            enabled: true,
+            match: {
+              in: {
+                assetId: [
+                  "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+                  "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
+                ],
+              },
+              out: { symbol: "*" },
+            },
+            fee: { type: "bps", bps: 5, recipient: "fees.near" },
+          },
+        ],
+      };
+
+      const matcher = new RuleMatcher(config, registry);
+
+      // ETH USDC should match
+      const result1 = matcher.match({
+        originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+        destinationAsset: "nep141:eth-0x2260fac5e5542a773aa44fbcfedf7c193bc2c599.omft.near",
+      });
+      expect(result1.matched).toBe(true);
+      expect(getBps(result1.fee)).toBe(5);
+
+      // BASE USDC should match
+      const result2 = matcher.match({
+        originAsset: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
+        destinationAsset: "nep141:eth-0x2260fac5e5542a773aa44fbcfedf7c193bc2c599.omft.near",
+      });
+      expect(result2.matched).toBe(true);
+      expect(getBps(result2.fee)).toBe(5);
+    });
+
+    it("does not match when assetId is not in array", () => {
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
+        rules: [
+          {
+            id: "multiple-assets",
+            enabled: true,
+            match: {
+              in: {
+                assetId: [
+                  "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+                  "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
+                ],
+              },
+              out: { symbol: "*" },
+            },
+            fee: { type: "bps", bps: 5, recipient: "fees.near" },
+          },
+        ],
+      };
+
+      const matcher = new RuleMatcher(config, registry);
+
+      // ARB USDC should NOT match (not in array)
+      const result = matcher.match({
+        originAsset: "nep141:arb-0xaf88d065e77c8cc2239327c5edb3a432268e5831.omft.near",
+        destinationAsset: "nep141:eth-0x2260fac5e5542a773aa44fbcfedf7c193bc2c599.omft.near",
+      });
+      expect(result.matched).toBe(false);
+      expect(getBps(result.fee)).toBe(20);
+    });
+
+    it("supports negation in assetId array", () => {
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
+        rules: [
+          {
+            id: "not-these-assets",
+            enabled: true,
+            match: {
+              in: {
+                assetId: ["!nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near"],
+              },
+              out: { symbol: "*" },
+            },
+            fee: { type: "bps", bps: 8, recipient: "fees.near" },
+          },
+        ],
+      };
+
+      const matcher = new RuleMatcher(config, registry);
+
+      // ARB USDC should match (not ETH USDC)
+      const result1 = matcher.match({
+        originAsset: "nep141:arb-0xaf88d065e77c8cc2239327c5edb3a432268e5831.omft.near",
+        destinationAsset: "nep141:eth-0x2260fac5e5542a773aa44fbcfedf7c193bc2c599.omft.near",
+      });
+      expect(result1.matched).toBe(true);
+
+      // ETH USDC should NOT match
+      const result2 = matcher.match({
+        originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+        destinationAsset: "nep141:eth-0x2260fac5e5542a773aa44fbcfedf7c193bc2c599.omft.near",
+      });
+      expect(result2.matched).toBe(false);
+    });
+  });
+
   describe("matchDetails.matchedBy", () => {
     it("includes matchedBy info when matching by symbol only", () => {
       const config: FeeConfig = {

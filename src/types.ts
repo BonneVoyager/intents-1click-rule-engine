@@ -5,10 +5,23 @@ export interface TokenInfo {
   decimals: number;
 }
 
+/**
+ * Matcher for filtering tokens by blockchain, symbol, or assetId.
+ *
+ * **Important: All string matching is case-sensitive.**
+ * - `symbol: "USDC"` will NOT match a token with symbol `"usdc"` or `"Usdc"`
+ * - `blockchain: "eth"` will NOT match `"ETH"` or `"Eth"`
+ *
+ * Supported patterns:
+ * - Exact match: `"eth"` matches only `"eth"`
+ * - Wildcard: `"*"` matches any value
+ * - Negation: `"!eth"` matches any value except `"eth"`
+ * - Array (OR logic): `["eth", "base"]` matches `"eth"` or `"base"`
+ */
 export interface TokenMatcher {
   blockchain?: string | string[];
   symbol?: string | string[];
-  assetId?: string;
+  assetId?: string | string[];
 }
 
 export interface RuleMatch {

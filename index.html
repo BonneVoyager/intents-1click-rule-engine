@@ -539,6 +539,9 @@
 
         <div class="match-section">
           <h3>Match: Input Token (in)</h3>
+          <div class="help-text" style="margin-bottom: 10px; color: #856404; background: #fff3cd; padding: 8px; border-radius: 4px;">
+            <strong>Note:</strong> All matching is case-sensitive. "USDC" won't match "usdc".
+          </div>
           <div class="form-group">
             <label>Blockchain</label>
             <input type="text" id="inBlockchain" placeholder="eth, *, !eth, or eth,arb,base" autocomplete="off">
@@ -550,8 +553,8 @@
             <div class="autocomplete-list" id="inSymbolAC"></div>
           </div>
           <div class="form-group">
-            <label>Asset ID (exact)</label>
-            <input type="text" id="inAssetId" placeholder="nep141:eth-0x...omft.near" autocomplete="off">
+            <label>Asset ID</label>
+            <input type="text" id="inAssetId" placeholder="nep141:eth-0x...omft.near (or comma-separated)" autocomplete="off">
             <div class="autocomplete-list" id="inAssetIdAC"></div>
           </div>
         </div>
@@ -569,8 +572,8 @@
             <div class="autocomplete-list" id="outSymbolAC"></div>
           </div>
           <div class="form-group">
-            <label>Asset ID (exact)</label>
-            <input type="text" id="outAssetId" placeholder="nep141:eth-0x...omft.near" autocomplete="off">
+            <label>Asset ID</label>
+            <input type="text" id="outAssetId" placeholder="nep141:eth-0x...omft.near (or comma-separated)" autocomplete="off">
             <div class="autocomplete-list" id="outAssetIdAC"></div>
           </div>
         </div>
@@ -934,7 +937,7 @@
     }
 
     function matchesToken(matcher, token) {
-      if (matcher.assetId && !matchesSinglePattern(matcher.assetId, token.assetId)) {
+      if (matcher.assetId && !matchesValue(matcher.assetId, token.assetId)) {
         return false;
       }
       if (matcher.blockchain && !matchesValue(matcher.blockchain, token.blockchain)) {
@@ -1069,7 +1072,7 @@
       const match = {};
       const bc = parseMatchValue(blockchain);
       const sym = parseMatchValue(symbol);
-      const id = assetId?.trim();
+      const id = parseMatchValue(assetId);
 
       if (bc) match.blockchain = bc;
       if (sym) match.symbol = sym;
@@ -1081,10 +1084,14 @@
     function formatMatchDisplay(match) {
       const parts = [];
       if (match.assetId) {
-        const short = match.assetId.length > 30
-          ? match.assetId.slice(0, 15) + '...' + match.assetId.slice(-10)
-          : match.assetId;
-        parts.push(`assetId: ${short}`);
+        if (Array.isArray(match.assetId)) {
+          parts.push(`assetId: [${match.assetId.length} items]`);
+        } else {
+          const short = match.assetId.length > 30
+            ? match.assetId.slice(0, 15) + '...' + match.assetId.slice(-10)
+            : match.assetId;
+          parts.push(`assetId: ${short}`);
+        }
       }
       if (match.blockchain) {
         const bc = Array.isArray(match.blockchain) ? match.blockchain.join('|') : match.blockchain;
@@ -1239,11 +1246,11 @@
 
       document.getElementById('inBlockchain').value = formatMatchValue(rule.match.in.blockchain);
       document.getElementById('inSymbol').value = formatMatchValue(rule.match.in.symbol);
-      document.getElementById('inAssetId').value = rule.match.in.assetId || '';
+      document.getElementById('inAssetId').value = formatMatchValue(rule.match.in.assetId);
 
       document.getElementById('outBlockchain').value = formatMatchValue(rule.match.out.blockchain);
       document.getElementById('outSymbol').value = formatMatchValue(rule.match.out.symbol);
-      document.getElementById('outAssetId').value = rule.match.out.assetId || '';
+      document.getElementById('outAssetId').value = formatMatchValue(rule.match.out.assetId);
 
       setFees(rule.fee);
 

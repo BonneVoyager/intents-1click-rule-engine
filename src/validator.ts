@@ -56,10 +56,40 @@ export interface ValidationResult {
   errors: ValidationError[];
 }
 
+function isNonEmptyStringOrArray(value: unknown): boolean {
+  if (typeof value === "string") return value.length > 0;
+  if (Array.isArray(value)) return value.length > 0 && value.every((v) => typeof v === "string" && v.length > 0);
+  return false;
+}
+
 function validateTokenMatcher(matcher: TokenMatcher, path: string): ValidationError[] {
   const errors: ValidationError[] = [];
 
-  const hasIdentifier = matcher.blockchain || matcher.symbol || matcher.assetId;
+  // Check for empty arrays
+  if (Array.isArray(matcher.blockchain) && matcher.blockchain.length === 0) {
+    errors.push({ path: `${path}.blockchain`, message: "blockchain array must not be empty" });
+  }
+  if (Array.isArray(matcher.symbol) && matcher.symbol.length === 0) {
+    errors.push({ path: `${path}.symbol`, message: "symbol array must not be empty" });
+  }
+  if (Array.isArray(matcher.assetId) && matcher.assetId.length === 0) {
+    errors.push({ path: `${path}.assetId`, message: "assetId array must not be empty" });
+  }
+
+  // Check for empty strings in arrays
+  if (Array.isArray(matcher.blockchain) && matcher.blockchain.some((v) => v === "")) {
+    errors.push({ path: `${path}.blockchain`, message: "blockchain array must not contain empty strings" });
+  }
+  if (Array.isArray(matcher.symbol) && matcher.symbol.some((v) => v === "")) {
+    errors.push({ path: `${path}.symbol`, message: "symbol array must not contain empty strings" });
+  }
+  if (Array.isArray(matcher.assetId) && matcher.assetId.some((v) => v === "")) {
+    errors.push({ path: `${path}.assetId`, message: "assetId array must not contain empty strings" });
+  }
+
+  const hasIdentifier = isNonEmptyStringOrArray(matcher.blockchain) ||
+                        isNonEmptyStringOrArray(matcher.symbol) ||
+                        isNonEmptyStringOrArray(matcher.assetId);
   if (!hasIdentifier) {
     errors.push({
       path,

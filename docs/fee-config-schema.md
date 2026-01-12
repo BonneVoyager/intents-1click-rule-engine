@@ -74,16 +74,21 @@ Both `in` and `out` support the following optional properties:
 
 | Property | Type | Description | Example |
 |----------|------|-------------|---------|
-| `blockchain` | string | Blockchain identifier or `"*"` for any blockchain | `"ethereum"`, `"polygon"`, `"*"` |
-| `symbol` | string | Token symbol or `"*"` for any token | `"USDC"`, `"WBTC"`, `"*"` |
-| `assetId` | string | Exact asset identifier from token registry | `"nep141:eth-0xa0b8...omft.near"` |
+| `blockchain` | string \| string[] | Blockchain identifier(s), `"*"` for any, or `"!value"` for negation | `"eth"`, `["arb", "base"]`, `"!eth"` |
+| `symbol` | string \| string[] | Token symbol(s), `"*"` for any, or `"!value"` for negation | `"USDC"`, `["USDC", "USDT"]`, `"!WBTC"` |
+| `assetId` | string \| string[] | Exact asset identifier(s) from token registry | `"nep141:eth-0xa0b8...omft.near"`, `["asset1", "asset2"]` |
 
 **Constraints:**
 1. All properties are optional, but **at least one** of `blockchain`, `symbol`, or `assetId` must be defined in each `in`/`out` block
 2. Token information is sourced from: `https://1click.chaindefuser.com/v0/tokens`
 3. Use `"*"` as a wildcard to match any value for that property
+4. Use `"!value"` to match anything except that value (negation)
+5. Use arrays `["a", "b"]` for OR logic (matches if any value matches)
+6. Empty arrays `[]` are not allowed
 
-**Important:** Rules match based on token identifiers only (blockchain, symbol, assetId), not on swap amounts.
+**Important:**
+- Rules match based on token identifiers only (blockchain, symbol, assetId), not on swap amounts.
+- **All matching is case-sensitive.** `"USDC"` will not match `"usdc"` or `"Usdc"`.
 
 ### `fee` Object
 
@@ -265,14 +270,16 @@ Defines the fee when a rule matches.
 1. **Unique IDs:** Each rule must have a unique `id`
 2. **Valid priorities:** Priority must be a non-negative number
 3. **Match constraints:** At least one of `blockchain`, `symbol`, or `assetId` must be present in both `in` and `out`
-4. **Valid BPS:** Basis points must be non-negative numbers
+4. **Valid BPS:** Basis points must be non-negative integers between 0 and 10000 (0% to 100%)
+5. **Non-empty arrays:** Arrays for `blockchain`, `symbol`, or `assetId` must not be empty
+6. **No empty strings in arrays:** Arrays must not contain empty strings
+7. **Valid date strings:** `valid_from` and `valid_until` must be valid ISO 8601 date strings (invalid dates throw errors during matching)
 
 ### Recommended Validations
 
 1. **Asset ID format:** Validate against known asset ID patterns from token registry
 2. **Blockchain names:** Validate against supported blockchain identifiers
 3. **Token symbols:** Check against token registry for existence
-4. **Wildcard usage:** Ensure `"*"` is only used for `blockchain` and `symbol`, not `assetId`
 
 ## Token Registry Reference
 

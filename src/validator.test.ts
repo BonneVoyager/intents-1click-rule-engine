@@ -451,4 +451,113 @@ describe("validateConfig", () => {
     expect(result.errors.some((e) => e.path === "default_fee[1].bps")).toBe(true);
     expect(result.errors.some((e) => e.path === "default_fee[1].recipient")).toBe(true);
   });
+
+  it("rejects empty blockchain array in matcher", () => {
+    const config: FeeConfig = {
+      version: "1.0.0",
+      default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
+      rules: [
+        {
+          id: "test-rule",
+          enabled: true,
+          match: {
+            in: { blockchain: [] },
+            out: { symbol: "USDC" },
+          },
+          fee: { type: "bps", bps: 10, recipient: "fees.near" },
+        },
+      ],
+    };
+
+    const result = validateConfig(config);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.message.includes("blockchain array must not be empty"))).toBe(true);
+  });
+
+  it("rejects empty symbol array in matcher", () => {
+    const config: FeeConfig = {
+      version: "1.0.0",
+      default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
+      rules: [
+        {
+          id: "test-rule",
+          enabled: true,
+          match: {
+            in: { symbol: [] },
+            out: { symbol: "USDC" },
+          },
+          fee: { type: "bps", bps: 10, recipient: "fees.near" },
+        },
+      ],
+    };
+
+    const result = validateConfig(config);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.message.includes("symbol array must not be empty"))).toBe(true);
+  });
+
+  it("rejects empty assetId array in matcher", () => {
+    const config: FeeConfig = {
+      version: "1.0.0",
+      default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
+      rules: [
+        {
+          id: "test-rule",
+          enabled: true,
+          match: {
+            in: { assetId: [] },
+            out: { symbol: "USDC" },
+          },
+          fee: { type: "bps", bps: 10, recipient: "fees.near" },
+        },
+      ],
+    };
+
+    const result = validateConfig(config);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.message.includes("assetId array must not be empty"))).toBe(true);
+  });
+
+  it("rejects empty strings in blockchain array", () => {
+    const config: FeeConfig = {
+      version: "1.0.0",
+      default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
+      rules: [
+        {
+          id: "test-rule",
+          enabled: true,
+          match: {
+            in: { blockchain: ["eth", "", "base"] },
+            out: { symbol: "USDC" },
+          },
+          fee: { type: "bps", bps: 10, recipient: "fees.near" },
+        },
+      ],
+    };
+
+    const result = validateConfig(config);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.message.includes("must not contain empty strings"))).toBe(true);
+  });
+
+  it("accepts assetId as array", () => {
+    const config: FeeConfig = {
+      version: "1.0.0",
+      default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
+      rules: [
+        {
+          id: "test-rule",
+          enabled: true,
+          match: {
+            in: { assetId: ["asset1", "asset2"] },
+            out: { symbol: "USDC" },
+          },
+          fee: { type: "bps", bps: 10, recipient: "fees.near" },
+        },
+      ],
+    };
+
+    const result = validateConfig(config);
+    expect(result.valid).toBe(true);
+  });
 });

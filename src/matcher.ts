@@ -38,7 +38,7 @@ export class RuleMatcher {
     const matchedBy: TokenMatchInfo["matchedBy"] = {};
 
     if (matcher.assetId) {
-      if (!this.matchesSinglePattern(matcher.assetId, token.assetId)) {
+      if (!this.matchesValue(matcher.assetId, token.assetId)) {
         return null;
       }
       matchedBy.assetId = true;
@@ -59,14 +59,22 @@ export class RuleMatcher {
     return { token, matchedBy };
   }
 
+  private parseDate(dateStr: string, fieldName: string): number {
+    const timestamp = new Date(dateStr).getTime();
+    if (Number.isNaN(timestamp)) {
+      throw new Error(`Invalid ${fieldName}: "${dateStr}" is not a valid date string`);
+    }
+    return timestamp;
+  }
+
   private isRuleValidNow(rule: Rule): boolean {
     const now = Date.now();
     if (rule.valid_from) {
-      const from = new Date(rule.valid_from).getTime();
+      const from = this.parseDate(rule.valid_from, "valid_from");
       if (now < from) return false;
     }
     if (rule.valid_until) {
-      const until = new Date(rule.valid_until).getTime();
+      const until = this.parseDate(rule.valid_until, "valid_until");
       if (now > until) return false;
     }
     return true;

@@ -51,6 +51,27 @@ console.log(getTotalBps(result.fee));  // 10
 const feeAmount = calculateFee("1000000", getTotalBps(result.fee)); // "1000" (0.10% of 1000000)
 ```
 
+## Fee Calculation
+
+The `calculateFee` and `calculateAmountAfterFee` functions validate their inputs:
+
+```typescript
+// Valid usage
+calculateFee("1000000", 20);        // "2000" (0.20% of 1000000)
+calculateFee(1000000n, 20);         // "2000" (bigint input also works)
+calculateAmountAfterFee("1000000", 20); // "998000" (amount minus fee)
+
+// Input validation - these throw descriptive errors:
+calculateFee("abc", 20);            // Error: not a valid integer string
+calculateFee("12.5", 20);           // Error: not a valid integer string
+calculateFee("-100", 20);           // Error: must be non-negative
+calculateFee("1000", -5);           // Error: bps must be non-negative
+calculateFee("1000", 10001);        // Error: bps exceeds maximum of 10000 (100%)
+calculateFee("1000", 20.5);         // Error: bps must be an integer
+```
+
+The `bps` parameter must be between 0 and 10000 (0% to 100%).
+
 ## Token Registry
 
 The engine fetches the token list from `https://1click.chaindefuser.com/v0/tokens` to resolve asset IDs to their `blockchain` and `symbol`. This allows rules to match by symbol/blockchain instead of exact asset IDs.
@@ -70,7 +91,7 @@ Rules are evaluated by priority (highest first). The first matching rule wins. I
 
 Each rule can match on:
 
-- `assetId` - exact asset identifier
+- `assetId` - exact asset identifier (string or array)
 - `blockchain` - chain identifier (e.g., `"eth"`, `"polygon"`)
 - `symbol` - token symbol (e.g., `"USDC"`, `"WBTC"`)
 
@@ -78,6 +99,8 @@ Special patterns:
 - `"*"` - wildcard, matches any value
 - `"!value"` - negation, matches anything except `value`
 - `["a", "b"]` - array, matches any value in the list (OR logic)
+
+**Important:** All pattern matching is **case-sensitive**. `"USDC"` will not match `"usdc"` or `"Usdc"`. Ensure your rules use the exact casing from the token registry.
 
 ## Fee Structure
 
@@ -221,7 +244,29 @@ fee: [
 }
 ```
 
+### Array values for assetId
+
+```typescript
+{
+  id: "specific-usdc-tokens",
+  enabled: true,
+  priority: 150,
+  match: {
+    in: {
+      assetId: [
+        "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+        "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
+      ]
+    },
+    out: { symbol: "USDC" },
+  },
+  fee: { type: "bps", bps: 5, recipient: "fees.near" },
+}
+```
+
 ### Time-based rules (promotional periods)
+
+Rules can have `valid_from` and `valid_until` timestamps. Dates must be valid ISO 8601 strings - invalid dates will throw an error during matching.
 
 ```typescript
 {

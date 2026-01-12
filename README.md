@@ -336,6 +336,22 @@ const feeConfig = {
 - Use priority gaps (50, 100, 150, 200) to allow inserting rules later
 - More specific rules should have higher priority
 
+## Rule Builder UI
+
+A simple browser-based tool for building fee configurations is included:
+
+```bash
+open rule-builder.html
+```
+
+Features:
+- Visual rule editor with all matching options
+- Support for wildcards, negation, and arrays
+- Multiple fee recipients
+- Time-based rules
+- Import/export JSON configurations
+- No dependencies - works offline
+
 ## Development
 
 ```bash

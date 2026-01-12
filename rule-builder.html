@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fee Rule Builder</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+      color: #333;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .panel h2 {
+      margin-top: 0;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 5px;
+      font-size: 14px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="datetime-local"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 0 2px rgba(0,123,255,0.1);
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .checkbox-group input {
+      width: auto;
+    }
+
+    .checkbox-group label {
+      margin: 0;
+      font-weight: normal;
+    }
+
+    .match-section {
+      background: #f8f9fa;
+      border-radius: 6px;
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+
+    .match-section h3 {
+      margin: 0 0 15px 0;
+      font-size: 14px;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .fee-item {
+      background: #f0f7ff;
+      border-radius: 6px;
+      padding: 15px;
+      margin-bottom: 10px;
+      position: relative;
+    }
+
+    .fee-item .remove-fee {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .fee-item .remove-fee:hover {
+      background: #c82333;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+
+    .btn-primary {
+      background: #007bff;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #0056b3;
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #545b62;
+    }
+
+    .btn-success {
+      background: #28a745;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #1e7e34;
+    }
+
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #c82333;
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .rule-list {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .rule-card {
+      background: #f8f9fa;
+      border-radius: 6px;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-left: 4px solid #007bff;
+    }
+
+    .rule-card.disabled {
+      opacity: 0.6;
+      border-left-color: #6c757d;
+    }
+
+    .rule-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .rule-card-title {
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .rule-card-priority {
+      background: #e9ecef;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #666;
+    }
+
+    .rule-card-match {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 8px;
+    }
+
+    .rule-card-fee {
+      font-size: 13px;
+      font-weight: 500;
+      color: #28a745;
+    }
+
+    .rule-card-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .output-section {
+      margin-top: 20px;
+    }
+
+    .output-section textarea {
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 12px;
+      height: 300px;
+      resize: vertical;
+    }
+
+    .default-fee-section {
+      background: #fff3cd;
+      border-radius: 6px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+
+    .default-fee-section h3 {
+      margin: 0 0 15px 0;
+      font-size: 14px;
+      color: #856404;
+    }
+
+    .inline-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .help-text {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    .tag {
+      display: inline-block;
+      background: #e9ecef;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 11px;
+      margin-right: 4px;
+    }
+
+    .tag.wildcard {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .tag.negation {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 15px;
+    }
+
+    .tab {
+      padding: 8px 16px;
+      border: none;
+      background: #e9ecef;
+      border-radius: 4px 4px 0 0;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .tab.active {
+      background: white;
+      font-weight: 500;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <h1>Fee Rule Builder</h1>
+  <p class="subtitle">Build fee configuration rules for NEAR Intents 1Click API</p>
+
+  <div class="container">
+    <div class="panel">
+      <h2>Rule Editor</h2>
+
+      <div class="default-fee-section">
+        <h3>Default Fee (when no rules match)</h3>
+        <div class="inline-fields">
+          <div class="form-group">
+            <label>BPS (basis points)</label>
+            <input type="number" id="defaultBps" value="20" min="0">
+          </div>
+          <div class="form-group">
+            <label>Recipient</label>
+            <input type="text" id="defaultRecipient" value="fees.near" placeholder="fees.near">
+          </div>
+        </div>
+      </div>
+
+      <form id="ruleForm">
+        <div class="inline-fields">
+          <div class="form-group">
+            <label>Rule ID *</label>
+            <input type="text" id="ruleId" required placeholder="usdc-swaps">
+          </div>
+          <div class="form-group">
+            <label>Priority</label>
+            <input type="number" id="rulePriority" value="100" min="0">
+            <div class="help-text">Higher = evaluated first</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Description</label>
+          <input type="text" id="ruleDescription" placeholder="Optional description">
+        </div>
+
+        <div class="form-group">
+          <div class="checkbox-group">
+            <input type="checkbox" id="ruleEnabled" checked>
+            <label for="ruleEnabled">Enabled</label>
+          </div>
+        </div>
+
+        <div class="match-section">
+          <h3>Match: Input Token (in)</h3>
+          <div class="form-group">
+            <label>Blockchain</label>
+            <input type="text" id="inBlockchain" placeholder="eth, *, !eth, or eth,arb,base">
+            <div class="help-text">Use * for any, ! prefix to exclude, comma for multiple</div>
+          </div>
+          <div class="form-group">
+            <label>Symbol</label>
+            <input type="text" id="inSymbol" placeholder="USDC, *, !WBTC, or USDC,USDT,DAI">
+          </div>
+          <div class="form-group">
+            <label>Asset ID (exact)</label>
+            <input type="text" id="inAssetId" placeholder="nep141:eth-0x...omft.near">
+          </div>
+        </div>
+
+        <div class="match-section">
+          <h3>Match: Output Token (out)</h3>
+          <div class="form-group">
+            <label>Blockchain</label>
+            <input type="text" id="outBlockchain" placeholder="eth, *, !eth, or eth,arb,base">
+          </div>
+          <div class="form-group">
+            <label>Symbol</label>
+            <input type="text" id="outSymbol" placeholder="USDC, *, !WBTC, or USDC,USDT,DAI">
+          </div>
+          <div class="form-group">
+            <label>Asset ID (exact)</label>
+            <input type="text" id="outAssetId" placeholder="nep141:eth-0x...omft.near">
+          </div>
+        </div>
+
+        <div id="feeContainer">
+          <label>Fee Recipients</label>
+          <div id="feeItems">
+            <div class="fee-item" data-fee-index="0">
+              <div class="inline-fields">
+                <div class="form-group">
+                  <label>BPS</label>
+                  <input type="number" class="feeBps" value="10" min="0" required>
+                </div>
+                <div class="form-group">
+                  <label>Recipient</label>
+                  <input type="text" class="feeRecipient" value="fees.near" required>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="btn btn-sm btn-secondary" onclick="addFeeItem()">+ Add Fee Recipient</button>
+        </div>
+
+        <div class="inline-fields" style="margin-top: 15px;">
+          <div class="form-group">
+            <label>Valid From (optional)</label>
+            <input type="datetime-local" id="validFrom">
+          </div>
+          <div class="form-group">
+            <label>Valid Until (optional)</label>
+            <input type="datetime-local" id="validUntil">
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <button type="submit" class="btn btn-primary" id="submitBtn">Add Rule</button>
+          <button type="button" class="btn btn-secondary" onclick="resetForm()">Clear</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="panel">
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('rules')">Rules</button>
+        <button class="tab" onclick="switchTab('output')">JSON Output</button>
+        <button class="tab" onclick="switchTab('import')">Import</button>
+      </div>
+
+      <div id="rulesTab" class="tab-content active">
+        <div id="ruleList" class="rule-list">
+          <div class="empty-state">No rules yet. Add your first rule!</div>
+        </div>
+      </div>
+
+      <div id="outputTab" class="tab-content">
+        <div class="output-section">
+          <textarea id="jsonOutput" readonly></textarea>
+          <div class="btn-group">
+            <button class="btn btn-success" onclick="copyJson()">Copy JSON</button>
+            <button class="btn btn-secondary" onclick="downloadJson()">Download</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="importTab" class="tab-content">
+        <div class="form-group">
+          <label>Paste JSON Configuration</label>
+          <textarea id="jsonImport" placeholder='{"version": "1.0.0", "default_fee": {...}, "rules": [...]}'></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="importJson()">Import Configuration</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let rules = [];
+    let editingIndex = -1;
+    let feeItemCount = 1;
+
+    function parseMatchValue(value) {
+      if (!value || value.trim() === '') return null;
+      const trimmed = value.trim();
+      if (trimmed.includes(',')) {
+        return trimmed.split(',').map(v => v.trim()).filter(v => v);
+      }
+      return trimmed;
+    }
+
+    function formatMatchValue(value) {
+      if (!value) return '';
+      if (Array.isArray(value)) return value.join(', ');
+      return value;
+    }
+
+    function buildMatchObject(blockchain, symbol, assetId) {
+      const match = {};
+      const bc = parseMatchValue(blockchain);
+      const sym = parseMatchValue(symbol);
+      const id = assetId?.trim();
+
+      if (bc) match.blockchain = bc;
+      if (sym) match.symbol = sym;
+      if (id) match.assetId = id;
+
+      return Object.keys(match).length > 0 ? match : null;
+    }
+
+    function formatMatchDisplay(match) {
+      const parts = [];
+      if (match.assetId) {
+        const short = match.assetId.length > 30
+          ? match.assetId.slice(0, 15) + '...' + match.assetId.slice(-10)
+          : match.assetId;
+        parts.push(`assetId: ${short}`);
+      }
+      if (match.blockchain) {
+        const bc = Array.isArray(match.blockchain) ? match.blockchain.join('|') : match.blockchain;
+        parts.push(`chain: ${bc}`);
+      }
+      if (match.symbol) {
+        const sym = Array.isArray(match.symbol) ? match.symbol.join('|') : match.symbol;
+        parts.push(`symbol: ${sym}`);
+      }
+      return parts.join(', ') || '*';
+    }
+
+    function addFeeItem() {
+      const container = document.getElementById('feeItems');
+      const div = document.createElement('div');
+      div.className = 'fee-item';
+      div.dataset.feeIndex = feeItemCount++;
+      div.innerHTML = `
+        <button type="button" class="remove-fee" onclick="removeFeeItem(this)">Remove</button>
+        <div class="inline-fields">
+          <div class="form-group">
+            <label>BPS</label>
+            <input type="number" class="feeBps" value="10" min="0" required>
+          </div>
+          <div class="form-group">
+            <label>Recipient</label>
+            <input type="text" class="feeRecipient" value="" placeholder="partner.near" required>
+          </div>
+        </div>
+      `;
+      container.appendChild(div);
+    }
+
+    function removeFeeItem(btn) {
+      const items = document.querySelectorAll('.fee-item');
+      if (items.length > 1) {
+        btn.closest('.fee-item').remove();
+      }
+    }
+
+    function getFees() {
+      const items = document.querySelectorAll('.fee-item');
+      const fees = [];
+      items.forEach(item => {
+        const bps = parseInt(item.querySelector('.feeBps').value) || 0;
+        const recipient = item.querySelector('.feeRecipient').value.trim();
+        if (recipient) {
+          fees.push({ type: 'bps', bps, recipient });
+        }
+      });
+      return fees.length === 1 ? fees[0] : fees;
+    }
+
+    function setFees(fee) {
+      const container = document.getElementById('feeItems');
+      container.innerHTML = '';
+      feeItemCount = 0;
+
+      const fees = Array.isArray(fee) ? fee : [fee];
+      fees.forEach((f, i) => {
+        const div = document.createElement('div');
+        div.className = 'fee-item';
+        div.dataset.feeIndex = feeItemCount++;
+        div.innerHTML = `
+          ${i > 0 ? '<button type="button" class="remove-fee" onclick="removeFeeItem(this)">Remove</button>' : ''}
+          <div class="inline-fields">
+            <div class="form-group">
+              <label>BPS</label>
+              <input type="number" class="feeBps" value="${f.bps || 0}" min="0" required>
+            </div>
+            <div class="form-group">
+              <label>Recipient</label>
+              <input type="text" class="feeRecipient" value="${f.recipient || ''}" required>
+            </div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function formatFeeDisplay(fee) {
+      const fees = Array.isArray(fee) ? fee : [fee];
+      const total = fees.reduce((sum, f) => sum + f.bps, 0);
+      if (fees.length === 1) {
+        return `${total} bps (${(total / 100).toFixed(2)}%) → ${fees[0].recipient}`;
+      }
+      const recipients = fees.map(f => `${f.bps}→${f.recipient}`).join(', ');
+      return `${total} bps total (${recipients})`;
+    }
+
+    document.getElementById('ruleForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const inMatch = buildMatchObject(
+        document.getElementById('inBlockchain').value,
+        document.getElementById('inSymbol').value,
+        document.getElementById('inAssetId').value
+      );
+
+      const outMatch = buildMatchObject(
+        document.getElementById('outBlockchain').value,
+        document.getElementById('outSymbol').value,
+        document.getElementById('outAssetId').value
+      );
+
+      if (!inMatch || !outMatch) {
+        alert('Both input and output must have at least one match criteria (blockchain, symbol, or assetId)');
+        return;
+      }
+
+      const rule = {
+        id: document.getElementById('ruleId').value.trim(),
+        enabled: document.getElementById('ruleEnabled').checked,
+        priority: parseInt(document.getElementById('rulePriority').value) || 100,
+        match: { in: inMatch, out: outMatch },
+        fee: getFees()
+      };
+
+      const desc = document.getElementById('ruleDescription').value.trim();
+      if (desc) rule.description = desc;
+
+      const validFrom = document.getElementById('validFrom').value;
+      const validUntil = document.getElementById('validUntil').value;
+      if (validFrom) rule.valid_from = new Date(validFrom).toISOString();
+      if (validUntil) rule.valid_until = new Date(validUntil).toISOString();
+
+      if (editingIndex >= 0) {
+        rules[editingIndex] = rule;
+        editingIndex = -1;
+        document.getElementById('submitBtn').textContent = 'Add Rule';
+      } else {
+        if (rules.some(r => r.id === rule.id)) {
+          alert('A rule with this ID already exists');
+          return;
+        }
+        rules.push(rule);
+      }
+
+      resetForm();
+      renderRules();
+      updateOutput();
+    });
+
+    function editRule(index) {
+      const rule = rules[index];
+      editingIndex = index;
+
+      document.getElementById('ruleId').value = rule.id;
+      document.getElementById('ruleEnabled').checked = rule.enabled;
+      document.getElementById('rulePriority').value = rule.priority ?? 100;
+      document.getElementById('ruleDescription').value = rule.description || '';
+
+      document.getElementById('inBlockchain').value = formatMatchValue(rule.match.in.blockchain);
+      document.getElementById('inSymbol').value = formatMatchValue(rule.match.in.symbol);
+      document.getElementById('inAssetId').value = rule.match.in.assetId || '';
+
+      document.getElementById('outBlockchain').value = formatMatchValue(rule.match.out.blockchain);
+      document.getElementById('outSymbol').value = formatMatchValue(rule.match.out.symbol);
+      document.getElementById('outAssetId').value = rule.match.out.assetId || '';
+
+      setFees(rule.fee);
+
+      if (rule.valid_from) {
+        document.getElementById('validFrom').value = rule.valid_from.slice(0, 16);
+      }
+      if (rule.valid_until) {
+        document.getElementById('validUntil').value = rule.valid_until.slice(0, 16);
+      }
+
+      document.getElementById('submitBtn').textContent = 'Update Rule';
+      document.getElementById('ruleId').focus();
+    }
+
+    function deleteRule(index) {
+      if (confirm('Delete this rule?')) {
+        rules.splice(index, 1);
+        if (editingIndex === index) {
+          editingIndex = -1;
+          resetForm();
+        } else if (editingIndex > index) {
+          editingIndex--;
+        }
+        renderRules();
+        updateOutput();
+      }
+    }
+
+    function duplicateRule(index) {
+      const rule = JSON.parse(JSON.stringify(rules[index]));
+      rule.id = rule.id + '-copy';
+      let counter = 1;
+      while (rules.some(r => r.id === rule.id)) {
+        rule.id = rules[index].id + '-copy-' + counter++;
+      }
+      rules.push(rule);
+      renderRules();
+      updateOutput();
+    }
+
+    function resetForm() {
+      document.getElementById('ruleForm').reset();
+      document.getElementById('ruleEnabled').checked = true;
+      document.getElementById('rulePriority').value = '100';
+      setFees({ type: 'bps', bps: 10, recipient: 'fees.near' });
+      editingIndex = -1;
+      document.getElementById('submitBtn').textContent = 'Add Rule';
+    }
+
+    function renderRules() {
+      const container = document.getElementById('ruleList');
+
+      if (rules.length === 0) {
+        container.innerHTML = '<div class="empty-state">No rules yet. Add your first rule!</div>';
+        return;
+      }
+
+      const sorted = [...rules].sort((a, b) => (b.priority ?? 100) - (a.priority ?? 100));
+
+      container.innerHTML = sorted.map((rule, displayIndex) => {
+        const actualIndex = rules.indexOf(rule);
+        return `
+          <div class="rule-card ${rule.enabled ? '' : 'disabled'}">
+            <div class="rule-card-header">
+              <span class="rule-card-title">${rule.id}</span>
+              <span class="rule-card-priority">Priority: ${rule.priority ?? 100}</span>
+            </div>
+            <div class="rule-card-match">
+              <strong>In:</strong> ${formatMatchDisplay(rule.match.in)}<br>
+              <strong>Out:</strong> ${formatMatchDisplay(rule.match.out)}
+            </div>
+            <div class="rule-card-fee">${formatFeeDisplay(rule.fee)}</div>
+            ${rule.description ? `<div style="font-size: 12px; color: #666; margin-top: 5px;">${rule.description}</div>` : ''}
+            <div class="rule-card-actions">
+              <button class="btn btn-sm btn-primary" onclick="editRule(${actualIndex})">Edit</button>
+              <button class="btn btn-sm btn-secondary" onclick="duplicateRule(${actualIndex})">Duplicate</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteRule(${actualIndex})">Delete</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function getConfig() {
+      const defaultFee = {
+        type: 'bps',
+        bps: parseInt(document.getElementById('defaultBps').value) || 20,
+        recipient: document.getElementById('defaultRecipient').value.trim() || 'fees.near'
+      };
+
+      return {
+        version: '1.0.0',
+        default_fee: defaultFee,
+        rules: rules
+      };
+    }
+
+    function updateOutput() {
+      document.getElementById('jsonOutput').value = JSON.stringify(getConfig(), null, 2);
+    }
+
+    function copyJson() {
+      const textarea = document.getElementById('jsonOutput');
+      textarea.select();
+      document.execCommand('copy');
+      alert('JSON copied to clipboard!');
+    }
+
+    function downloadJson() {
+      const json = JSON.stringify(getConfig(), null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'fee-config.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importJson() {
+      try {
+        const json = document.getElementById('jsonImport').value;
+        const config = JSON.parse(json);
+
+        if (config.default_fee) {
+          const df = Array.isArray(config.default_fee) ? config.default_fee[0] : config.default_fee;
+          document.getElementById('defaultBps').value = df.bps || 20;
+          document.getElementById('defaultRecipient').value = df.recipient || 'fees.near';
+        }
+
+        if (Array.isArray(config.rules)) {
+          rules = config.rules;
+        }
+
+        renderRules();
+        updateOutput();
+        switchTab('rules');
+        alert('Configuration imported successfully!');
+      } catch (e) {
+        alert('Invalid JSON: ' + e.message);
+      }
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+
+      document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
+      document.getElementById(tabName + 'Tab').classList.add('active');
+
+      if (tabName === 'output') {
+        updateOutput();
+      }
+    }
+
+    // Initialize
+    document.getElementById('defaultBps').addEventListener('change', updateOutput);
+    document.getElementById('defaultRecipient').addEventListener('change', updateOutput);
+    updateOutput();
+  </script>
+</body>
+</html>

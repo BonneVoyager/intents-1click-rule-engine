@@ -506,6 +506,130 @@ describe("RuleMatcher", () => {
     });
   });
 
+  describe("negation matching", () => {
+    it("matches when blockchain is not the negated value", () => {
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20 },
+        rules: [
+          {
+            id: "not-eth",
+            enabled: true,
+            match: {
+              in: { blockchain: "!eth" },
+              out: { blockchain: "*" },
+            },
+            fee: { type: "bps", bps: 5 },
+          },
+        ],
+      };
+
+      const matcher = new RuleMatcher(config, registry);
+
+      // ARB → SOL should match (not eth)
+      const result = matcher.match({
+        originAsset: "nep141:arb-0xaf88d065e77c8cc2239327c5edb3a432268e5831.omft.near",
+        destinationAsset: "nep141:sol-usdc.omft.near",
+      });
+
+      expect(result.matched).toBe(true);
+      expect(result.fee.bps).toBe(5);
+    });
+
+    it("does not match when blockchain equals negated value", () => {
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20 },
+        rules: [
+          {
+            id: "not-eth",
+            enabled: true,
+            match: {
+              in: { blockchain: "!eth" },
+              out: { blockchain: "*" },
+            },
+            fee: { type: "bps", bps: 5 },
+          },
+        ],
+      };
+
+      const matcher = new RuleMatcher(config, registry);
+
+      // ETH → SOL should NOT match
+      const result = matcher.match({
+        originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+        destinationAsset: "nep141:sol-usdc.omft.near",
+      });
+
+      expect(result.matched).toBe(false);
+      expect(result.fee.bps).toBe(20);
+    });
+
+    it("matches negated symbol", () => {
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20 },
+        rules: [
+          {
+            id: "not-usdc",
+            enabled: true,
+            match: {
+              in: { symbol: "!USDC" },
+              out: { symbol: "*" },
+            },
+            fee: { type: "bps", bps: 15 },
+          },
+        ],
+      };
+
+      const matcher = new RuleMatcher(config, registry);
+
+      // WBTC → USDC should match (WBTC is not USDC)
+      const result = matcher.match({
+        originAsset: "nep141:eth-0x2260fac5e5542a773aa44fbcfedf7c193bc2c599.omft.near",
+        destinationAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+      });
+
+      expect(result.matched).toBe(true);
+      expect(result.fee.bps).toBe(15);
+    });
+
+    it("combines negation with other matchers", () => {
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20 },
+        rules: [
+          {
+            id: "usdc-not-to-eth",
+            enabled: true,
+            match: {
+              in: { symbol: "USDC" },
+              out: { symbol: "USDC", blockchain: "!eth" },
+            },
+            fee: { type: "bps", bps: 8 },
+          },
+        ],
+      };
+
+      const matcher = new RuleMatcher(config, registry);
+
+      // ETH USDC → Polygon USDC should match (polygon is not eth)
+      const result1 = matcher.match({
+        originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+      });
+      expect(result1.matched).toBe(true);
+      expect(result1.fee.bps).toBe(8);
+
+      // ETH USDC → ETH USDC should NOT match (eth is eth)
+      const result2 = matcher.match({
+        originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+        destinationAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+      });
+      expect(result2.matched).toBe(false);
+    });
+  });
+
   describe("blockchain matching", () => {
     it("matches specific blockchain routes", () => {
       const config: FeeConfig = {

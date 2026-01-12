@@ -67,10 +67,12 @@ Rules are evaluated by priority (highest first). The first matching rule wins. I
 Each rule can match on:
 
 - `assetId` - exact asset identifier
-- `blockchain` - chain identifier (e.g., "eth", "polygon")
-- `symbol` - token symbol (e.g., "USDC", "WBTC")
+- `blockchain` - chain identifier (e.g., `"eth"`, `"polygon"`)
+- `symbol` - token symbol (e.g., `"USDC"`, `"WBTC"`)
 
-Use `"*"` as wildcard for `blockchain` or `symbol`.
+Special patterns:
+- `"*"` - wildcard, matches any value
+- `"!value"` - negation, matches anything except `value`
 
 ## Rule Examples
 
@@ -146,6 +148,21 @@ Use `"*"` as wildcard for `blockchain` or `symbol`.
     out: { blockchain: "sol" },
   },
   fee: { type: "bps", bps: 25 },
+}
+```
+
+### Negation (exclude specific values)
+
+```typescript
+{
+  id: "non-eth-swaps",
+  enabled: true,
+  priority: 100,
+  match: {
+    in: { blockchain: "!eth" },
+    out: { blockchain: "!eth" },
+  },
+  fee: { type: "bps", bps: 12 },
 }
 ```
 

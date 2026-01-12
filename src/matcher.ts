@@ -19,14 +19,22 @@ export class RuleMatcher {
     });
   }
 
+  private matchesValue(pattern: string, value: string): boolean {
+    if (pattern === "*") return true;
+    if (pattern.startsWith("!")) {
+      return value !== pattern.slice(1);
+    }
+    return pattern === value;
+  }
+
   private matchesToken(matcher: TokenMatcher, token: TokenInfo): boolean {
-    if (matcher.assetId && matcher.assetId !== "*" && matcher.assetId !== token.assetId) {
+    if (matcher.assetId && !this.matchesValue(matcher.assetId, token.assetId)) {
       return false;
     }
-    if (matcher.blockchain && matcher.blockchain !== "*" && matcher.blockchain !== token.blockchain) {
+    if (matcher.blockchain && !this.matchesValue(matcher.blockchain, token.blockchain)) {
       return false;
     }
-    if (matcher.symbol && matcher.symbol !== "*" && matcher.symbol !== token.symbol) {
+    if (matcher.symbol && !this.matchesValue(matcher.symbol, token.symbol)) {
       return false;
     }
     return true;

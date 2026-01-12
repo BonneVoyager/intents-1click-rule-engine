@@ -47,6 +47,19 @@ export class RuleMatcher {
     return true;
   }
 
+  private isRuleValidNow(rule: Rule): boolean {
+    const now = Date.now();
+    if (rule.valid_from) {
+      const from = new Date(rule.valid_from).getTime();
+      if (now < from) return false;
+    }
+    if (rule.valid_until) {
+      const until = new Date(rule.valid_until).getTime();
+      if (now > until) return false;
+    }
+    return true;
+  }
+
   match(request: SwapRequest): MatchResult {
     const originToken = this.tokenRegistry.getToken(request.originAsset);
     const destinationToken = this.tokenRegistry.getToken(request.destinationAsset);
@@ -60,6 +73,7 @@ export class RuleMatcher {
 
     for (const rule of this.rules) {
       if (!rule.enabled) continue;
+      if (!this.isRuleValidNow(rule)) continue;
 
       const inMatches = this.matchesToken(rule.match.in, originToken);
       const outMatches = this.matchesToken(rule.match.out, destinationToken);

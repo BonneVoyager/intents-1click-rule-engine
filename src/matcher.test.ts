@@ -635,6 +635,182 @@ describe("RuleMatcher", () => {
     });
   });
 
+  describe("time-based rules", () => {
+    it("matches rule with no time constraints", () => {
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20 },
+        rules: [
+          {
+            id: "no-time-limit",
+            enabled: true,
+            match: {
+              in: { symbol: "USDC" },
+              out: { symbol: "USDC" },
+            },
+            fee: { type: "bps", bps: 10 },
+          },
+        ],
+      };
+
+      const matcher = new RuleMatcher(config, registry);
+      const result = matcher.match({
+        originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+      });
+
+      expect(result.matched).toBe(true);
+      expect(result.fee.bps).toBe(10);
+    });
+
+    it("matches rule when current time is after valid_from", () => {
+      const pastDate = new Date(Date.now() - 86400000).toISOString(); // 1 day ago
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20 },
+        rules: [
+          {
+            id: "started-yesterday",
+            enabled: true,
+            valid_from: pastDate,
+            match: {
+              in: { symbol: "USDC" },
+              out: { symbol: "USDC" },
+            },
+            fee: { type: "bps", bps: 5 },
+          },
+        ],
+      };
+
+      const matcher = new RuleMatcher(config, registry);
+      const result = matcher.match({
+        originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+      });
+
+      expect(result.matched).toBe(true);
+      expect(result.fee.bps).toBe(5);
+    });
+
+    it("does not match rule when current time is before valid_from", () => {
+      const futureDate = new Date(Date.now() + 86400000).toISOString(); // 1 day from now
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20 },
+        rules: [
+          {
+            id: "starts-tomorrow",
+            enabled: true,
+            valid_from: futureDate,
+            match: {
+              in: { symbol: "USDC" },
+              out: { symbol: "USDC" },
+            },
+            fee: { type: "bps", bps: 5 },
+          },
+        ],
+      };
+
+      const matcher = new RuleMatcher(config, registry);
+      const result = matcher.match({
+        originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+      });
+
+      expect(result.matched).toBe(false);
+      expect(result.fee.bps).toBe(20);
+    });
+
+    it("matches rule when current time is before valid_until", () => {
+      const futureDate = new Date(Date.now() + 86400000).toISOString(); // 1 day from now
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20 },
+        rules: [
+          {
+            id: "ends-tomorrow",
+            enabled: true,
+            valid_until: futureDate,
+            match: {
+              in: { symbol: "USDC" },
+              out: { symbol: "USDC" },
+            },
+            fee: { type: "bps", bps: 5 },
+          },
+        ],
+      };
+
+      const matcher = new RuleMatcher(config, registry);
+      const result = matcher.match({
+        originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+      });
+
+      expect(result.matched).toBe(true);
+      expect(result.fee.bps).toBe(5);
+    });
+
+    it("does not match rule when current time is after valid_until", () => {
+      const pastDate = new Date(Date.now() - 86400000).toISOString(); // 1 day ago
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20 },
+        rules: [
+          {
+            id: "ended-yesterday",
+            enabled: true,
+            valid_until: pastDate,
+            match: {
+              in: { symbol: "USDC" },
+              out: { symbol: "USDC" },
+            },
+            fee: { type: "bps", bps: 5 },
+          },
+        ],
+      };
+
+      const matcher = new RuleMatcher(config, registry);
+      const result = matcher.match({
+        originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+      });
+
+      expect(result.matched).toBe(false);
+      expect(result.fee.bps).toBe(20);
+    });
+
+    it("matches rule within valid_from and valid_until range", () => {
+      const pastDate = new Date(Date.now() - 86400000).toISOString();
+      const futureDate = new Date(Date.now() + 86400000).toISOString();
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20 },
+        rules: [
+          {
+            id: "promo-active",
+            enabled: true,
+            valid_from: pastDate,
+            valid_until: futureDate,
+            match: {
+              in: { symbol: "USDC" },
+              out: { symbol: "USDC" },
+            },
+            fee: { type: "bps", bps: 0 },
+          },
+        ],
+      };
+
+      const matcher = new RuleMatcher(config, registry);
+      const result = matcher.match({
+        originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+      });
+
+      expect(result.matched).toBe(true);
+      expect(result.fee.bps).toBe(0);
+    });
+  });
+
   describe("negation matching", () => {
     it("matches when blockchain is not the negated value", () => {
       const config: FeeConfig = {

@@ -195,6 +195,38 @@ Special patterns:
 }
 ```
 
+### Time-based rules (promotional periods)
+
+```typescript
+{
+  id: "new-year-promo",
+  enabled: true,
+  priority: 200,
+  valid_from: "2025-01-01T00:00:00Z",
+  valid_until: "2025-01-07T23:59:59Z",
+  match: {
+    in: { symbol: "*" },
+    out: { symbol: "*" },
+  },
+  fee: { type: "bps", bps: 0 },
+}
+```
+
+```typescript
+{
+  id: "summer-discount",
+  enabled: true,
+  priority: 150,
+  valid_from: "2025-06-01T00:00:00Z",
+  // No valid_until - runs indefinitely after start
+  match: {
+    in: { symbol: "USDC" },
+    out: { symbol: "USDC" },
+  },
+  fee: { type: "bps", bps: 5 },
+}
+```
+
 ### Complete config example
 
 ```typescript

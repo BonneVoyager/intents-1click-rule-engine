@@ -28,6 +28,8 @@ export interface Rule {
   description?: string;
   match: RuleMatch;
   fee: Fee;
+  valid_from?: string;
+  valid_until?: string;
 }
 
 export interface FeeConfig {

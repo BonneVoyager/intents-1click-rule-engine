@@ -1,14 +1,14 @@
 import type { FeeConfig, SwapRequest, MatchResult } from "./types";
 import { RuleMatcher } from "./matcher";
 import { CachedTokenRegistry, type TokenRegistryConfig } from "./token-registry";
-import { validateConfig, type ValidationResult } from "./validator";
+import { validateConfig } from "./validator";
 
 const DEFAULT_TOKEN_REGISTRY_URL = "https://1click.chaindefuser.com/v0/tokens";
 const DEFAULT_CACHE_TTL_MS = 3600000; // 1 hour
 
-export interface RuleEngineConfig {
-  feeConfig: FeeConfig;
-  tokenRegistry?: Partial<TokenRegistryConfig>;
+export interface RuleEngineOptions {
+  tokenRegistryUrl?: string;
+  tokenRegistryCacheTtlMs?: number;
 }
 
 export class RuleEngine {
@@ -16,17 +16,18 @@ export class RuleEngine {
   private tokenRegistry: CachedTokenRegistry;
   private feeConfig: FeeConfig;
 
-  constructor(config: RuleEngineConfig) {
-    this.feeConfig = config.feeConfig;
+  constructor(feeConfig: FeeConfig, options?: RuleEngineOptions) {
+    const validation = validateConfig(feeConfig);
+    if (!validation.valid) {
+      throw new Error(`Invalid fee config: ${validation.errors.map((e) => `${e.path}: ${e.message}`).join(", ")}`);
+    }
+
+    this.feeConfig = feeConfig;
     this.tokenRegistry = new CachedTokenRegistry({
-      url: config.tokenRegistry?.url ?? DEFAULT_TOKEN_REGISTRY_URL,
-      cacheTtlMs: config.tokenRegistry?.cacheTtlMs ?? DEFAULT_CACHE_TTL_MS,
+      url: options?.tokenRegistryUrl ?? DEFAULT_TOKEN_REGISTRY_URL,
+      cacheTtlMs: options?.tokenRegistryCacheTtlMs ?? DEFAULT_CACHE_TTL_MS,
     });
     this.matcher = new RuleMatcher(this.feeConfig, this.tokenRegistry);
-  }
-
-  static validate(feeConfig: FeeConfig): ValidationResult {
-    return validateConfig(feeConfig);
   }
 
   async initialize(): Promise<void> {

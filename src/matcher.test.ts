@@ -202,7 +202,113 @@ describe("RuleMatcher", () => {
     });
   });
 
+  describe("wildcard symbol matching", () => {
+    it("matches * wildcard for symbol", () => {
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20 },
+        rules: [
+          {
+            id: "eth-to-any",
+            enabled: true,
+            match: {
+              in: { blockchain: "eth", symbol: "*" },
+              out: { blockchain: "*", symbol: "*" },
+            },
+            fee: { type: "bps", bps: 12 },
+          },
+        ],
+      };
+
+      const matcher = new RuleMatcher(config, registry);
+      const result = matcher.match({
+        originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+        destinationAsset: "nep141:sol-usdc.omft.near",
+      });
+
+      expect(result.matched).toBe(true);
+      expect(result.fee.bps).toBe(12);
+    });
+  });
+
   describe("priority ordering", () => {
+    it("uses default priority of 100 when not specified", () => {
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20 },
+        rules: [
+          {
+            id: "no-priority",
+            enabled: true,
+            match: {
+              in: { symbol: "USDC" },
+              out: { symbol: "USDC" },
+            },
+            fee: { type: "bps", bps: 10 },
+          },
+          {
+            id: "low-priority",
+            enabled: true,
+            priority: 50,
+            match: {
+              in: { symbol: "USDC" },
+              out: { symbol: "USDC" },
+            },
+            fee: { type: "bps", bps: 15 },
+          },
+        ],
+      };
+
+      const matcher = new RuleMatcher(config, registry);
+      const result = matcher.match({
+        originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+      });
+
+      expect(result.matched).toBe(true);
+      expect(result.rule?.id).toBe("no-priority");
+      expect(result.fee.bps).toBe(10);
+    });
+
+    it("first matching rule wins when priorities are equal", () => {
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20 },
+        rules: [
+          {
+            id: "first-rule",
+            enabled: true,
+            priority: 100,
+            match: {
+              in: { symbol: "USDC" },
+              out: { symbol: "USDC" },
+            },
+            fee: { type: "bps", bps: 5 },
+          },
+          {
+            id: "second-rule",
+            enabled: true,
+            priority: 100,
+            match: {
+              in: { symbol: "USDC" },
+              out: { symbol: "USDC" },
+            },
+            fee: { type: "bps", bps: 10 },
+          },
+        ],
+      };
+
+      const matcher = new RuleMatcher(config, registry);
+      const result = matcher.match({
+        originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+      });
+
+      expect(result.matched).toBe(true);
+      expect(result.rule?.id).toBe("first-rule");
+      expect(result.fee.bps).toBe(5);
+    });
+
     it("higher priority rule wins over lower priority", () => {
       const config: FeeConfig = {
         version: "1.0.0",

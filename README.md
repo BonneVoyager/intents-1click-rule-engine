@@ -30,15 +30,8 @@ const feeConfig = {
   ],
 };
 
-// Validate config
-const validation = RuleEngine.validate(feeConfig);
-if (!validation.valid) {
-  console.error(validation.errors);
-  process.exit(1);
-}
-
-// Create engine (token registry defaults to 1click API with 1hr cache)
-const engine = new RuleEngine({ feeConfig });
+// Create engine (validates config, throws on error)
+const engine = new RuleEngine(feeConfig);
 
 // Initialize token registry
 await engine.initialize();
@@ -54,15 +47,169 @@ console.log(result.fee.bps);    // 10
 console.log(result.rule?.id);   // "usdc-swaps"
 ```
 
+## Token Registry
+
+The engine fetches the token list from `https://1click.chaindefuser.com/v0/tokens` to resolve asset IDs to their `blockchain` and `symbol`. This allows rules to match by symbol/blockchain instead of exact asset IDs.
+
+```
+Swap Request                     Token Registry Lookup
+─────────────                    ─────────────────────
+originAsset: "nep141:eth-..."  → { blockchain: "eth", symbol: "USDC" }
+destinationAsset: "nep141:sol-..." → { blockchain: "sol", symbol: "USDC" }
+```
+
+Call `engine.initialize()` before matching to fetch the token list. The list is cached for 1 hour by default.
+
 ## Rule Matching
 
-Rules are evaluated by priority (highest first). Each rule can match on:
+Rules are evaluated by priority (highest first). The first matching rule wins. If no rules match, `default_fee` is used.
+
+Each rule can match on:
 
 - `assetId` - exact asset identifier
 - `blockchain` - chain identifier (e.g., "eth", "polygon")
 - `symbol` - token symbol (e.g., "USDC", "WBTC")
 
 Use `"*"` as wildcard for `blockchain` or `symbol`.
+
+## Rule Examples
+
+### Match by symbol (any chain)
+
+```typescript
+{
+  id: "usdc-to-usdc",
+  enabled: true,
+  priority: 100,
+  match: {
+    in: { symbol: "USDC" },
+    out: { symbol: "USDC" },
+  },
+  fee: { type: "bps", bps: 10 },
+}
+```
+
+### Match by blockchain route
+
+```typescript
+{
+  id: "eth-to-polygon",
+  enabled: true,
+  priority: 100,
+  match: {
+    in: { blockchain: "eth" },
+    out: { blockchain: "polygon" },
+  },
+  fee: { type: "bps", bps: 15 },
+}
+```
+
+### Match exact asset pair
+
+```typescript
+{
+  id: "eth-usdc-to-polygon-usdc",
+  enabled: true,
+  priority: 200,
+  match: {
+    in: { assetId: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near" },
+    out: { assetId: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near" },
+  },
+  fee: { type: "bps", bps: 5 },
+}
+```
+
+### Mixed matching (blockchain + symbol)
+
+```typescript
+{
+  id: "eth-usdc-to-any-usdc",
+  enabled: true,
+  priority: 150,
+  match: {
+    in: { blockchain: "eth", symbol: "USDC" },
+    out: { symbol: "USDC", blockchain: "*" },
+  },
+  fee: { type: "bps", bps: 8 },
+}
+```
+
+### Wildcard for any token on specific chain
+
+```typescript
+{
+  id: "anything-to-solana",
+  enabled: true,
+  priority: 50,
+  match: {
+    in: { blockchain: "*" },
+    out: { blockchain: "sol" },
+  },
+  fee: { type: "bps", bps: 25 },
+}
+```
+
+### Complete config example
+
+```typescript
+const feeConfig = {
+  version: "1.0.0",
+  default_fee: { type: "bps", bps: 30 },
+  rules: [
+    // Most specific first (higher priority)
+    {
+      id: "eth-usdc-to-polygon-usdc",
+      enabled: true,
+      priority: 200,
+      match: {
+        in: { assetId: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near" },
+        out: { assetId: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near" },
+      },
+      fee: { type: "bps", bps: 5 },
+    },
+    // Chain + symbol combo
+    {
+      id: "eth-usdc-to-any",
+      enabled: true,
+      priority: 150,
+      match: {
+        in: { blockchain: "eth", symbol: "USDC" },
+        out: { blockchain: "*" },
+      },
+      fee: { type: "bps", bps: 12 },
+    },
+    // All stablecoin swaps
+    {
+      id: "usdc-swaps",
+      enabled: true,
+      priority: 100,
+      match: {
+        in: { symbol: "USDC" },
+        out: { symbol: "USDC" },
+      },
+      fee: { type: "bps", bps: 10 },
+    },
+    // Disabled rule (won't match)
+    {
+      id: "promo-free-swaps",
+      enabled: false,
+      priority: 300,
+      match: {
+        in: { blockchain: "*" },
+        out: { blockchain: "*" },
+      },
+      fee: { type: "bps", bps: 0 },
+    },
+  ],
+};
+```
+
+### Priority ordering
+
+- Higher priority rules are evaluated first
+- First matching rule wins
+- Use priority gaps (50, 100, 150, 200) to allow inserting rules later
+- More specific rules should have higher priority
 
 ## Development
 

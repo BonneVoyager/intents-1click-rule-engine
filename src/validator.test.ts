@@ -128,4 +128,136 @@ describe("validateConfig", () => {
     expect(result.valid).toBe(false);
     expect(result.errors.some((e) => e.path === "rules[0].priority")).toBe(true);
   });
+
+  it("requires rule id", () => {
+    const config = {
+      version: "1.0.0",
+      default_fee: { type: "bps", bps: 20 },
+      rules: [
+        {
+          enabled: true,
+          match: { in: { symbol: "USDC" }, out: { symbol: "USDC" } },
+          fee: { type: "bps", bps: 10 },
+        },
+      ],
+    } as unknown as FeeConfig;
+
+    const result = validateConfig(config);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.path === "rules[0].id")).toBe(true);
+  });
+
+  it("requires rule enabled field", () => {
+    const config = {
+      version: "1.0.0",
+      default_fee: { type: "bps", bps: 20 },
+      rules: [
+        {
+          id: "test-rule",
+          match: { in: { symbol: "USDC" }, out: { symbol: "USDC" } },
+          fee: { type: "bps", bps: 10 },
+        },
+      ],
+    } as unknown as FeeConfig;
+
+    const result = validateConfig(config);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.path === "rules[0].enabled")).toBe(true);
+  });
+
+  it("requires rule match object", () => {
+    const config = {
+      version: "1.0.0",
+      default_fee: { type: "bps", bps: 20 },
+      rules: [
+        {
+          id: "test-rule",
+          enabled: true,
+          fee: { type: "bps", bps: 10 },
+        },
+      ],
+    } as unknown as FeeConfig;
+
+    const result = validateConfig(config);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.path === "rules[0].match")).toBe(true);
+  });
+
+  it("requires rule fee object", () => {
+    const config = {
+      version: "1.0.0",
+      default_fee: { type: "bps", bps: 20 },
+      rules: [
+        {
+          id: "test-rule",
+          enabled: true,
+          match: { in: { symbol: "USDC" }, out: { symbol: "USDC" } },
+        },
+      ],
+    } as unknown as FeeConfig;
+
+    const result = validateConfig(config);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.path === "rules[0].fee")).toBe(true);
+  });
+
+  it("validates rule fee.bps is non-negative", () => {
+    const config: FeeConfig = {
+      version: "1.0.0",
+      default_fee: { type: "bps", bps: 20 },
+      rules: [
+        {
+          id: "test-rule",
+          enabled: true,
+          match: { in: { symbol: "USDC" }, out: { symbol: "USDC" } },
+          fee: { type: "bps", bps: -5 },
+        },
+      ],
+    };
+
+    const result = validateConfig(config);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.path === "rules[0].fee.bps")).toBe(true);
+  });
+
+  it("requires match.out", () => {
+    const config = {
+      version: "1.0.0",
+      default_fee: { type: "bps", bps: 20 },
+      rules: [
+        {
+          id: "test-rule",
+          enabled: true,
+          match: { in: { symbol: "USDC" } },
+          fee: { type: "bps", bps: 10 },
+        },
+      ],
+    } as unknown as FeeConfig;
+
+    const result = validateConfig(config);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.path === "rules[0].match.out")).toBe(true);
+  });
+
+  it("requires at least one identifier in match.out", () => {
+    const config: FeeConfig = {
+      version: "1.0.0",
+      default_fee: { type: "bps", bps: 20 },
+      rules: [
+        {
+          id: "test-rule",
+          enabled: true,
+          match: {
+            in: { symbol: "USDC" },
+            out: {},
+          },
+          fee: { type: "bps", bps: 10 },
+        },
+      ],
+    };
+
+    const result = validateConfig(config);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.path === "rules[0].match.out")).toBe(true);
+  });
 });

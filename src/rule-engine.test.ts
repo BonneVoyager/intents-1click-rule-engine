@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { RuleEngine, calculateFee } from "./rule-engine";
+import { RuleEngine, calculateFee, calculateAmountAfterFee } from "./rule-engine";
 import type { FeeConfig } from "./types";
 
 const validConfig: FeeConfig = {
@@ -154,5 +154,30 @@ describe("calculateFee", () => {
     expect(calculateFee("100", 3)).toBe("0");
     // 10000 * 3 / 10000 = 3
     expect(calculateFee("10000", 3)).toBe("3");
+  });
+});
+
+describe("calculateAmountAfterFee", () => {
+  it("calculates amount after fee from string", () => {
+    // 1000000 - (1000000 * 20 / 10000) = 1000000 - 2000 = 998000
+    expect(calculateAmountAfterFee("1000000", 20)).toBe("998000");
+  });
+
+  it("calculates amount after fee from bigint", () => {
+    expect(calculateAmountAfterFee(1000000n, 20)).toBe("998000");
+  });
+
+  it("calculates amount after 1% fee", () => {
+    // 1000000 - 10000 = 990000
+    expect(calculateAmountAfterFee("1000000", 100)).toBe("990000");
+  });
+
+  it("returns full amount for 0 bps", () => {
+    expect(calculateAmountAfterFee("1000000", 0)).toBe("1000000");
+  });
+
+  it("handles large amounts", () => {
+    // 1000000000000000000 - 2500000000000000 = 997500000000000000
+    expect(calculateAmountAfterFee("1000000000000000000", 25)).toBe("997500000000000000");
   });
 });

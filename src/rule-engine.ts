@@ -13,6 +13,12 @@ export function calculateFee(amount: string | bigint, bps: number): string {
   return fee.toString();
 }
 
+export function calculateAmountAfterFee(amount: string | bigint, bps: number): string {
+  const amountBigInt = typeof amount === "string" ? BigInt(amount) : amount;
+  const fee = BigInt(calculateFee(amountBigInt, bps));
+  return (amountBigInt - fee).toString();
+}
+
 export interface RuleEngineOptions {
   tokenRegistryUrl?: string;
   tokenRegistryCacheTtlMs?: number;

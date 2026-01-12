@@ -39,7 +39,7 @@ await engine.initialize();
 // Match a swap request
 const result = engine.match({
   originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-  destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+  destinationAsset: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
 });
 
 console.log(result.matched);           // true
@@ -142,7 +142,7 @@ fee: [
   priority: 200,
   match: {
     in: { assetId: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near" },
-    out: { assetId: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near" },
+    out: { assetId: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near" },
   },
   fee: { type: "bps", bps: 5, recipient: "fees.near" },
 }
@@ -288,7 +288,7 @@ const feeConfig = {
       priority: 200,
       match: {
         in: { assetId: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near" },
-        out: { assetId: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near" },
+        out: { assetId: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near" },
       },
       fee: { type: "bps", bps: 5, recipient: "fees.near" },
     },

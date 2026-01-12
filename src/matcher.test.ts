@@ -27,8 +27,8 @@ const TOKENS: TokenInfo[] = [
     decimals: 6,
   },
   {
-    assetId: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
-    blockchain: "polygon",
+    assetId: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
+    blockchain: "base",
     symbol: "USDC",
     decimals: 6,
   },
@@ -45,7 +45,7 @@ const TOKENS: TokenInfo[] = [
     decimals: 6,
   },
   {
-    assetId: "nep141:sol-usdc.omft.near",
+    assetId: "nep141:sol-5ce3bf3a31af18be40ba30f721101b4341690186.omft.near",
     blockchain: "sol",
     symbol: "USDC",
     decimals: 6,
@@ -113,14 +113,14 @@ describe("RuleMatcher", () => {
       const matcher = new RuleMatcher(config, registry);
       const result = matcher.match({
         originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+        destinationAsset: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
       });
 
       expect(result.matched).toBe(true);
       expect(result.rule?.id).toBe("usdc-to-usdc");
       expect(getBps(result.fee)).toBe(10);
       expect(result.matchDetails?.originToken.blockchain).toBe("eth");
-      expect(result.matchDetails?.destinationToken.blockchain).toBe("polygon");
+      expect(result.matchDetails?.destinationToken.blockchain).toBe("base");
     });
 
     it("does not match USDC to WBTC for USDC-only rule", () => {
@@ -172,7 +172,7 @@ describe("RuleMatcher", () => {
       const matcher = new RuleMatcher(config, registry);
       const result = matcher.match({
         originAsset: "nep141:arb-0xaf88d065e77c8cc2239327c5edb3a432268e5831.omft.near",
-        destinationAsset: "nep141:sol-usdc.omft.near",
+        destinationAsset: "nep141:sol-5ce3bf3a31af18be40ba30f721101b4341690186.omft.near",
       });
 
       expect(result.matched).toBe(true);
@@ -231,7 +231,7 @@ describe("RuleMatcher", () => {
       const matcher = new RuleMatcher(config, registry);
       const result = matcher.match({
         originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-        destinationAsset: "nep141:sol-usdc.omft.near",
+        destinationAsset: "nep141:sol-5ce3bf3a31af18be40ba30f721101b4341690186.omft.near",
       });
 
       expect(result.matched).toBe(true);
@@ -270,7 +270,7 @@ describe("RuleMatcher", () => {
       const matcher = new RuleMatcher(config, registry);
       const result = matcher.match({
         originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+        destinationAsset: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
       });
 
       expect(result.matched).toBe(true);
@@ -309,7 +309,7 @@ describe("RuleMatcher", () => {
       const matcher = new RuleMatcher(config, registry);
       const result = matcher.match({
         originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+        destinationAsset: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
       });
 
       expect(result.matched).toBe(true);
@@ -348,7 +348,7 @@ describe("RuleMatcher", () => {
       const matcher = new RuleMatcher(config, registry);
       const result = matcher.match({
         originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+        destinationAsset: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
       });
 
       expect(result.matched).toBe(true);
@@ -372,12 +372,12 @@ describe("RuleMatcher", () => {
             fee: { type: "bps", bps: 10, recipient: "fees.near" },
           },
           {
-            id: "specific-eth-polygon",
+            id: "specific-eth-base",
             enabled: true,
             priority: 200,
             match: {
               in: { assetId: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near" },
-              out: { assetId: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near" },
+              out: { assetId: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near" },
             },
             fee: { type: "bps", bps: 2, recipient: "fees.near" },
           },
@@ -387,11 +387,11 @@ describe("RuleMatcher", () => {
       const matcher = new RuleMatcher(config, registry);
       const result = matcher.match({
         originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+        destinationAsset: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
       });
 
       expect(result.matched).toBe(true);
-      expect(result.rule?.id).toBe("specific-eth-polygon");
+      expect(result.rule?.id).toBe("specific-eth-base");
       expect(getBps(result.fee)).toBe(2);
     });
   });
@@ -417,7 +417,7 @@ describe("RuleMatcher", () => {
       const matcher = new RuleMatcher(config, registry);
       const result = matcher.match({
         originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+        destinationAsset: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
       });
 
       expect(result.matched).toBe(false);
@@ -506,7 +506,7 @@ describe("RuleMatcher", () => {
       // Exact ETH USDC → any USDC should match
       const result = matcher.match({
         originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-        destinationAsset: "nep141:sol-usdc.omft.near",
+        destinationAsset: "nep141:sol-5ce3bf3a31af18be40ba30f721101b4341690186.omft.near",
       });
 
       expect(result.matched).toBe(true);
@@ -524,7 +524,7 @@ describe("RuleMatcher", () => {
             id: "l2-chains",
             enabled: true,
             match: {
-              in: { blockchain: ["arb", "polygon", "sol"] },
+              in: { blockchain: ["arb", "base", "sol"] },
               out: { blockchain: "*" },
             },
             fee: { type: "bps", bps: 5, recipient: "fees.near" },
@@ -553,7 +553,7 @@ describe("RuleMatcher", () => {
             id: "l2-chains",
             enabled: true,
             match: {
-              in: { blockchain: ["arb", "polygon", "sol"] },
+              in: { blockchain: ["arb", "base", "sol"] },
               out: { blockchain: "*" },
             },
             fee: { type: "bps", bps: 5, recipient: "fees.near" },
@@ -566,7 +566,7 @@ describe("RuleMatcher", () => {
       // ETH should NOT match
       const result = matcher.match({
         originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-        destinationAsset: "nep141:sol-usdc.omft.near",
+        destinationAsset: "nep141:sol-5ce3bf3a31af18be40ba30f721101b4341690186.omft.near",
       });
 
       expect(result.matched).toBe(false);
@@ -594,7 +594,7 @@ describe("RuleMatcher", () => {
 
       const result = matcher.match({
         originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+        destinationAsset: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
       });
 
       expect(result.matched).toBe(true);
@@ -623,21 +623,21 @@ describe("RuleMatcher", () => {
       // ARB matches ("arb" matches)
       const result1 = matcher.match({
         originAsset: "nep141:arb-0xaf88d065e77c8cc2239327c5edb3a432268e5831.omft.near",
-        destinationAsset: "nep141:sol-usdc.omft.near",
+        destinationAsset: "nep141:sol-5ce3bf3a31af18be40ba30f721101b4341690186.omft.near",
       });
       expect(result1.matched).toBe(true);
 
-      // Polygon matches ("!eth" matches - polygon is not eth)
+      // Base matches ("!eth" matches - base is not eth)
       const result2 = matcher.match({
-        originAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
-        destinationAsset: "nep141:sol-usdc.omft.near",
+        originAsset: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
+        destinationAsset: "nep141:sol-5ce3bf3a31af18be40ba30f721101b4341690186.omft.near",
       });
       expect(result2.matched).toBe(true);
 
       // ETH does NOT match ("arb" fails, "!eth" fails)
       const result3 = matcher.match({
         originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-        destinationAsset: "nep141:sol-usdc.omft.near",
+        destinationAsset: "nep141:sol-5ce3bf3a31af18be40ba30f721101b4341690186.omft.near",
       });
       expect(result3.matched).toBe(false);
     });
@@ -664,7 +664,7 @@ describe("RuleMatcher", () => {
       const matcher = new RuleMatcher(config, registry);
       const result = matcher.match({
         originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+        destinationAsset: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
       });
 
       expect(result.matched).toBe(true);
@@ -693,7 +693,7 @@ describe("RuleMatcher", () => {
       const matcher = new RuleMatcher(config, registry);
       const result = matcher.match({
         originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+        destinationAsset: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
       });
 
       expect(result.matched).toBe(true);
@@ -722,7 +722,7 @@ describe("RuleMatcher", () => {
       const matcher = new RuleMatcher(config, registry);
       const result = matcher.match({
         originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+        destinationAsset: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
       });
 
       expect(result.matched).toBe(false);
@@ -751,7 +751,7 @@ describe("RuleMatcher", () => {
       const matcher = new RuleMatcher(config, registry);
       const result = matcher.match({
         originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+        destinationAsset: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
       });
 
       expect(result.matched).toBe(true);
@@ -780,7 +780,7 @@ describe("RuleMatcher", () => {
       const matcher = new RuleMatcher(config, registry);
       const result = matcher.match({
         originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+        destinationAsset: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
       });
 
       expect(result.matched).toBe(false);
@@ -811,7 +811,7 @@ describe("RuleMatcher", () => {
       const matcher = new RuleMatcher(config, registry);
       const result = matcher.match({
         originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+        destinationAsset: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
       });
 
       expect(result.matched).toBe(true);
@@ -842,7 +842,7 @@ describe("RuleMatcher", () => {
       // ARB → SOL should match (not eth)
       const result = matcher.match({
         originAsset: "nep141:arb-0xaf88d065e77c8cc2239327c5edb3a432268e5831.omft.near",
-        destinationAsset: "nep141:sol-usdc.omft.near",
+        destinationAsset: "nep141:sol-5ce3bf3a31af18be40ba30f721101b4341690186.omft.near",
       });
 
       expect(result.matched).toBe(true);
@@ -871,7 +871,7 @@ describe("RuleMatcher", () => {
       // ETH → SOL should NOT match
       const result = matcher.match({
         originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-        destinationAsset: "nep141:sol-usdc.omft.near",
+        destinationAsset: "nep141:sol-5ce3bf3a31af18be40ba30f721101b4341690186.omft.near",
       });
 
       expect(result.matched).toBe(false);
@@ -926,10 +926,10 @@ describe("RuleMatcher", () => {
 
       const matcher = new RuleMatcher(config, registry);
 
-      // ETH USDC → Polygon USDC should match (polygon is not eth)
+      // ETH USDC → Base USDC should match (base is not eth)
       const result1 = matcher.match({
         originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+        destinationAsset: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
       });
       expect(result1.matched).toBe(true);
       expect(getBps(result1.fee)).toBe(8);
@@ -950,11 +950,11 @@ describe("RuleMatcher", () => {
         default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
-            id: "eth-to-polygon",
+            id: "eth-to-base",
             enabled: true,
             match: {
               in: { blockchain: "eth" },
-              out: { blockchain: "polygon" },
+              out: { blockchain: "base" },
             },
             fee: { type: "bps", bps: 8, recipient: "fees.near" },
           },
@@ -964,11 +964,11 @@ describe("RuleMatcher", () => {
       const matcher = new RuleMatcher(config, registry);
       const result = matcher.match({
         originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+        destinationAsset: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
       });
 
       expect(result.matched).toBe(true);
-      expect(result.rule?.id).toBe("eth-to-polygon");
+      expect(result.rule?.id).toBe("eth-to-base");
       expect(getBps(result.fee)).toBe(8);
     });
   });
@@ -997,7 +997,7 @@ describe("RuleMatcher", () => {
       const matcher = new RuleMatcher(config, registry);
       const result = matcher.match({
         originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+        destinationAsset: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
       });
 
       expect(result.matched).toBe(true);
@@ -1025,7 +1025,7 @@ describe("RuleMatcher", () => {
       const matcher = new RuleMatcher(config, registry);
       const result = matcher.match({
         originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+        destinationAsset: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
       });
 
       expect(result.matched).toBe(false);
@@ -1060,7 +1060,7 @@ describe("RuleMatcher", () => {
       const matcher = new RuleMatcher(config, registry);
       const result = matcher.match({
         originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+        destinationAsset: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
       });
 
       expect(result.matched).toBe(true);
@@ -1074,11 +1074,11 @@ describe("RuleMatcher", () => {
         default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
-            id: "eth-to-polygon",
+            id: "eth-to-base",
             enabled: true,
             match: {
               in: { blockchain: "eth" },
-              out: { blockchain: "polygon" },
+              out: { blockchain: "base" },
             },
             fee: { type: "bps", bps: 8, recipient: "fees.near" },
           },
@@ -1088,7 +1088,7 @@ describe("RuleMatcher", () => {
       const matcher = new RuleMatcher(config, registry);
       const result = matcher.match({
         originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+        destinationAsset: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
       });
 
       expect(result.matched).toBe(true);
@@ -1106,7 +1106,7 @@ describe("RuleMatcher", () => {
             enabled: true,
             match: {
               in: { assetId: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near" },
-              out: { assetId: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near" },
+              out: { assetId: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near" },
             },
             fee: { type: "bps", bps: 5, recipient: "fees.near" },
           },
@@ -1116,7 +1116,7 @@ describe("RuleMatcher", () => {
       const matcher = new RuleMatcher(config, registry);
       const result = matcher.match({
         originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+        destinationAsset: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
       });
 
       expect(result.matched).toBe(true);
@@ -1130,11 +1130,11 @@ describe("RuleMatcher", () => {
         default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
-            id: "eth-usdc-to-polygon-usdc",
+            id: "eth-usdc-to-base-usdc",
             enabled: true,
             match: {
               in: { blockchain: "eth", symbol: "USDC" },
-              out: { blockchain: "polygon", symbol: "USDC" },
+              out: { blockchain: "base", symbol: "USDC" },
             },
             fee: { type: "bps", bps: 5, recipient: "fees.near" },
           },
@@ -1144,7 +1144,7 @@ describe("RuleMatcher", () => {
       const matcher = new RuleMatcher(config, registry);
       const result = matcher.match({
         originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+        destinationAsset: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
       });
 
       expect(result.matched).toBe(true);
@@ -1172,13 +1172,13 @@ describe("RuleMatcher", () => {
       const matcher = new RuleMatcher(config, registry);
       const result = matcher.match({
         originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+        destinationAsset: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
       });
 
       expect(result.matched).toBe(true);
       expect(result.matchDetails?.in?.token.blockchain).toBe("eth");
       expect(result.matchDetails?.in?.token.symbol).toBe("USDC");
-      expect(result.matchDetails?.out?.token.blockchain).toBe("polygon");
+      expect(result.matchDetails?.out?.token.blockchain).toBe("base");
       expect(result.matchDetails?.out?.token.symbol).toBe("USDC");
     });
 
@@ -1192,7 +1192,7 @@ describe("RuleMatcher", () => {
       const matcher = new RuleMatcher(config, registry);
       const result = matcher.match({
         originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+        destinationAsset: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
       });
 
       expect(result.matched).toBe(false);

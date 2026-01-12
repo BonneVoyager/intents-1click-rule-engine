@@ -391,7 +391,7 @@ The rule engine receives quote requests with the following structure:
 // Quote request
 {
   "originAsset": "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-  "destinationAsset": "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+  "destinationAsset": "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
   "amount": "5000000"  // 5 USDC (6 decimals)
 }
 
@@ -404,8 +404,8 @@ originToken = {
 }
 
 destinationToken = {
-  assetId: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
-  blockchain: "polygon",
+  assetId: "nep141:base-0x833589fcd6edb6e08f4c7c32d4f71b54bda02913.omft.near",
+  blockchain: "base",
   symbol: "USDC",
   decimals: 6
 }

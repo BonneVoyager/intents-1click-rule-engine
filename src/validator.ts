@@ -7,10 +7,16 @@ export interface ValidationError {
 
 const NEAR_ACCOUNT_REGEX = /^(?:[a-z\d]+[-_])*[a-z\d]+(?:\.[a-z\d]+[-_]*[a-z\d]+)*$/;
 const NEAR_IMPLICIT_ACCOUNT_REGEX = /^[a-f0-9]{64}$/;
+const MAX_BPS = 10000; // 100% fee cap
 
 function isValidNearAccount(account: string): boolean {
   if (account.length < 2 || account.length > 64) return false;
   return NEAR_ACCOUNT_REGEX.test(account) || NEAR_IMPLICIT_ACCOUNT_REGEX.test(account);
+}
+
+function isValidDateString(dateStr: string): boolean {
+  const timestamp = new Date(dateStr).getTime();
+  return !Number.isNaN(timestamp);
 }
 
 function validateSingleFee(fee: Fee, path: string): ValidationError[] {
@@ -21,6 +27,8 @@ function validateSingleFee(fee: Fee, path: string): ValidationError[] {
   }
   if (typeof fee.bps !== "number" || fee.bps < 0) {
     errors.push({ path: `${path}.bps`, message: "fee.bps must be a non-negative number" });
+  } else if (fee.bps > MAX_BPS) {
+    errors.push({ path: `${path}.bps`, message: `fee.bps exceeds maximum of ${MAX_BPS} (100%)` });
   }
   if (!fee.recipient || typeof fee.recipient !== "string") {
     errors.push({ path: `${path}.recipient`, message: "fee.recipient is required and must be a string" });
@@ -136,6 +144,22 @@ function validateRule(rule: Rule, index: number): ValidationError[] {
     errors.push({ path: `${path}.fee`, message: "fee is required" });
   } else {
     errors.push(...validateFee(rule.fee, `${path}.fee`));
+  }
+
+  if (rule.valid_from !== undefined) {
+    if (typeof rule.valid_from !== "string") {
+      errors.push({ path: `${path}.valid_from`, message: "valid_from must be a string" });
+    } else if (!isValidDateString(rule.valid_from)) {
+      errors.push({ path: `${path}.valid_from`, message: `valid_from "${rule.valid_from}" is not a valid date string` });
+    }
+  }
+
+  if (rule.valid_until !== undefined) {
+    if (typeof rule.valid_until !== "string") {
+      errors.push({ path: `${path}.valid_until`, message: "valid_until must be a string" });
+    } else if (!isValidDateString(rule.valid_until)) {
+      errors.push({ path: `${path}.valid_until`, message: `valid_until "${rule.valid_until}" is not a valid date string` });
+    }
   }
 
   return errors;

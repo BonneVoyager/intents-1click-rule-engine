@@ -560,4 +560,135 @@ describe("validateConfig", () => {
     const result = validateConfig(config);
     expect(result.valid).toBe(true);
   });
+
+  it("rejects bps exceeding maximum of 10000", () => {
+    const config: FeeConfig = {
+      version: "1.0.0",
+      default_fee: { type: "bps", bps: 10001, recipient: "fees.near" },
+      rules: [],
+    };
+
+    const result = validateConfig(config);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.path === "default_fee.bps" && e.message.includes("exceeds maximum"))).toBe(true);
+  });
+
+  it("rejects rule fee bps exceeding maximum of 10000", () => {
+    const config: FeeConfig = {
+      version: "1.0.0",
+      default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
+      rules: [
+        {
+          id: "test-rule",
+          enabled: true,
+          match: { in: { symbol: "USDC" }, out: { symbol: "USDC" } },
+          fee: { type: "bps", bps: 15000, recipient: "fees.near" },
+        },
+      ],
+    };
+
+    const result = validateConfig(config);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.path === "rules[0].fee.bps" && e.message.includes("exceeds maximum"))).toBe(true);
+  });
+
+  it("accepts maximum valid bps of 10000", () => {
+    const config: FeeConfig = {
+      version: "1.0.0",
+      default_fee: { type: "bps", bps: 10000, recipient: "fees.near" },
+      rules: [],
+    };
+
+    const result = validateConfig(config);
+    expect(result.valid).toBe(true);
+  });
+
+  it("rejects invalid valid_from date string", () => {
+    const config: FeeConfig = {
+      version: "1.0.0",
+      default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
+      rules: [
+        {
+          id: "test-rule",
+          enabled: true,
+          match: { in: { symbol: "USDC" }, out: { symbol: "USDC" } },
+          fee: { type: "bps", bps: 10, recipient: "fees.near" },
+          valid_from: "not-a-valid-date",
+        },
+      ],
+    };
+
+    const result = validateConfig(config);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.path === "rules[0].valid_from" && e.message.includes("not a valid date string"))).toBe(true);
+  });
+
+  it("rejects invalid valid_until date string", () => {
+    const config: FeeConfig = {
+      version: "1.0.0",
+      default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
+      rules: [
+        {
+          id: "test-rule",
+          enabled: true,
+          match: { in: { symbol: "USDC" }, out: { symbol: "USDC" } },
+          fee: { type: "bps", bps: 10, recipient: "fees.near" },
+          valid_until: "garbage-date",
+        },
+      ],
+    };
+
+    const result = validateConfig(config);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.path === "rules[0].valid_until" && e.message.includes("not a valid date string"))).toBe(true);
+  });
+
+  it("accepts valid ISO 8601 date strings", () => {
+    const config: FeeConfig = {
+      version: "1.0.0",
+      default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
+      rules: [
+        {
+          id: "test-rule",
+          enabled: true,
+          match: { in: { symbol: "USDC" }, out: { symbol: "USDC" } },
+          fee: { type: "bps", bps: 10, recipient: "fees.near" },
+          valid_from: "2024-01-01T00:00:00.000Z",
+          valid_until: "2024-12-31T23:59:59.999Z",
+        },
+      ],
+    };
+
+    const result = validateConfig(config);
+    expect(result.valid).toBe(true);
+  });
+
+  it("accepts valid date strings in various formats", () => {
+    const validDates = [
+      "2024-01-01",
+      "2024-01-01T12:00:00",
+      "2024-01-01T12:00:00Z",
+      "2024-01-01T12:00:00.000Z",
+      "January 1, 2024",
+    ];
+
+    for (const dateStr of validDates) {
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
+        rules: [
+          {
+            id: "test-rule",
+            enabled: true,
+            match: { in: { symbol: "USDC" }, out: { symbol: "USDC" } },
+            fee: { type: "bps", bps: 10, recipient: "fees.near" },
+            valid_from: dateStr,
+          },
+        ],
+      };
+
+      const result = validateConfig(config);
+      expect(result.valid).toBe(true);
+    }
+  });
 });

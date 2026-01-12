@@ -669,6 +669,14 @@
   </div>
 
   <script>
+    // Helper to escape HTML to prevent XSS
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      const div = document.createElement('div');
+      div.textContent = String(str);
+      return div.innerHTML;
+    }
+
     // State
     let rules = [];
     let editingIndex = -1;
@@ -1018,19 +1026,19 @@
         const totalBps = Array.isArray(fee) ? fee.reduce((sum, f) => sum + f.bps, 0) : fee.bps;
 
         container.innerHTML = `<div class="test-result matched">
-          <div class="test-result-header matched">Rule Matched: ${matchedRule.id}</div>
+          <div class="test-result-header matched">Rule Matched: ${escapeHtml(matchedRule.id)}</div>
           <dl class="test-result-details">
             <dt>Priority</dt>
             <dd>${matchedRule.priority ?? 100}</dd>
             <dt>Fee</dt>
             <dd>${totalBps} bps (${(totalBps / 100).toFixed(2)}%)</dd>
             <dt>Recipient(s)</dt>
-            <dd>${Array.isArray(fee) ? fee.map(f => `${f.recipient} (${f.bps} bps)`).join(', ') : fee.recipient}</dd>
+            <dd>${Array.isArray(fee) ? fee.map(f => `${escapeHtml(f.recipient)} (${f.bps} bps)`).join(', ') : escapeHtml(fee.recipient)}</dd>
             <dt>Origin Token</dt>
-            <dd>${originToken.symbol} on ${originToken.blockchain}</dd>
+            <dd>${escapeHtml(originToken.symbol)} on ${escapeHtml(originToken.blockchain)}</dd>
             <dt>Destination Token</dt>
-            <dd>${destToken.symbol} on ${destToken.blockchain}</dd>
-            ${matchedRule.description ? `<dt>Description</dt><dd>${matchedRule.description}</dd>` : ''}
+            <dd>${escapeHtml(destToken.symbol)} on ${escapeHtml(destToken.blockchain)}</dd>
+            ${matchedRule.description ? `<dt>Description</dt><dd>${escapeHtml(matchedRule.description)}</dd>` : ''}
           </dl>
         </div>`;
       } else {
@@ -1040,11 +1048,11 @@
             <dt>Fee</dt>
             <dd>${defaultFee.bps} bps (${(defaultFee.bps / 100).toFixed(2)}%)</dd>
             <dt>Recipient</dt>
-            <dd>${defaultFee.recipient}</dd>
+            <dd>${escapeHtml(defaultFee.recipient)}</dd>
             <dt>Origin Token</dt>
-            <dd>${originToken.symbol} on ${originToken.blockchain}</dd>
+            <dd>${escapeHtml(originToken.symbol)} on ${escapeHtml(originToken.blockchain)}</dd>
             <dt>Destination Token</dt>
-            <dd>${destToken.symbol} on ${destToken.blockchain}</dd>
+            <dd>${escapeHtml(destToken.symbol)} on ${escapeHtml(destToken.blockchain)}</dd>
             <dt>Rules Checked</dt>
             <dd>${sortedRules.filter(r => r.enabled).length} enabled rules</dd>
           </dl>
@@ -1338,15 +1346,15 @@
         return `
           <div class="rule-card ${rule.enabled ? '' : 'disabled'}">
             <div class="rule-card-header">
-              <span class="rule-card-title">${rule.id}</span>
+              <span class="rule-card-title">${escapeHtml(rule.id)}</span>
               <span class="rule-card-priority">Priority: ${rule.priority ?? 100}</span>
             </div>
             <div class="rule-card-match">
-              <strong>In:</strong> ${formatMatchDisplay(rule.match.in)}<br>
-              <strong>Out:</strong> ${formatMatchDisplay(rule.match.out)}
+              <strong>In:</strong> ${escapeHtml(formatMatchDisplay(rule.match.in))}<br>
+              <strong>Out:</strong> ${escapeHtml(formatMatchDisplay(rule.match.out))}
             </div>
-            <div class="rule-card-fee">${formatFeeDisplay(rule.fee)}</div>
-            ${rule.description ? `<div style="font-size: 12px; color: #666; margin-top: 5px;">${rule.description}</div>` : ''}
+            <div class="rule-card-fee">${escapeHtml(formatFeeDisplay(rule.fee))}</div>
+            ${rule.description ? `<div style="font-size: 12px; color: #666; margin-top: 5px;">${escapeHtml(rule.description)}</div>` : ''}
             <div class="rule-card-actions">
               <button class="btn btn-sm btn-primary" onclick="editRule(${actualIndex})">Edit</button>
               <button class="btn btn-sm btn-secondary" onclick="duplicateRule(${actualIndex})">Duplicate</button>
@@ -1375,11 +1383,18 @@
       document.getElementById('jsonOutput').value = JSON.stringify(getConfig(), null, 2);
     }
 
-    function copyJson() {
-      const textarea = document.getElementById('jsonOutput');
-      textarea.select();
-      document.execCommand('copy');
-      alert('JSON copied to clipboard!');
+    async function copyJson() {
+      const json = document.getElementById('jsonOutput').value;
+      try {
+        await navigator.clipboard.writeText(json);
+        alert('JSON copied to clipboard!');
+      } catch (e) {
+        // Fallback for older browsers or when clipboard API fails
+        const textarea = document.getElementById('jsonOutput');
+        textarea.select();
+        document.execCommand('copy');
+        alert('JSON copied to clipboard!');
+      }
     }
 
     function downloadJson() {
@@ -1393,10 +1408,136 @@
       URL.revokeObjectURL(url);
     }
 
+    // Basic config validation for import
+    function validateImportedConfig(config) {
+      const errors = [];
+      const MAX_BPS = 10000;
+
+      if (!config.version || typeof config.version !== 'string') {
+        errors.push('version is required and must be a string');
+      }
+
+      // Validate default_fee
+      function validateFee(fee, path) {
+        if (Array.isArray(fee)) {
+          if (fee.length === 0) {
+            errors.push(`${path}: fee array must not be empty`);
+          }
+          fee.forEach((f, i) => validateSingleFee(f, `${path}[${i}]`));
+        } else if (fee && typeof fee === 'object') {
+          validateSingleFee(fee, path);
+        } else {
+          errors.push(`${path}: fee is required`);
+        }
+      }
+
+      function validateSingleFee(fee, path) {
+        if (fee.type !== 'bps') {
+          errors.push(`${path}.type: must be 'bps'`);
+        }
+        if (typeof fee.bps !== 'number' || fee.bps < 0) {
+          errors.push(`${path}.bps: must be a non-negative number`);
+        }
+        if (fee.bps > MAX_BPS) {
+          errors.push(`${path}.bps: ${fee.bps} exceeds maximum of ${MAX_BPS} (100%)`);
+        }
+        if (!fee.recipient || typeof fee.recipient !== 'string') {
+          errors.push(`${path}.recipient: is required and must be a string`);
+        }
+      }
+
+      function validateTokenMatcher(matcher, path) {
+        const hasIdentifier = matcher.blockchain || matcher.symbol || matcher.assetId;
+        if (!hasIdentifier) {
+          errors.push(`${path}: at least one of blockchain, symbol, or assetId must be defined`);
+        }
+        // Check for empty arrays
+        ['blockchain', 'symbol', 'assetId'].forEach(field => {
+          if (Array.isArray(matcher[field]) && matcher[field].length === 0) {
+            errors.push(`${path}.${field}: array must not be empty`);
+          }
+        });
+      }
+
+      function validateDateString(dateStr, path) {
+        if (dateStr && typeof dateStr === 'string') {
+          const timestamp = new Date(dateStr).getTime();
+          if (Number.isNaN(timestamp)) {
+            errors.push(`${path}: "${dateStr}" is not a valid date string`);
+          }
+        }
+      }
+
+      if (!config.default_fee) {
+        errors.push('default_fee is required');
+      } else {
+        validateFee(config.default_fee, 'default_fee');
+      }
+
+      if (!Array.isArray(config.rules)) {
+        errors.push('rules must be an array');
+      } else {
+        const ruleIds = new Set();
+        config.rules.forEach((rule, i) => {
+          const path = `rules[${i}]`;
+
+          if (!rule.id || typeof rule.id !== 'string') {
+            errors.push(`${path}.id: is required and must be a string`);
+          } else {
+            if (ruleIds.has(rule.id)) {
+              errors.push(`${path}.id: duplicate rule id "${rule.id}"`);
+            }
+            ruleIds.add(rule.id);
+          }
+
+          if (typeof rule.enabled !== 'boolean') {
+            errors.push(`${path}.enabled: is required and must be a boolean`);
+          }
+
+          if (rule.priority !== undefined && (typeof rule.priority !== 'number' || rule.priority < 0)) {
+            errors.push(`${path}.priority: must be a non-negative number`);
+          }
+
+          if (!rule.match) {
+            errors.push(`${path}.match: is required`);
+          } else {
+            if (!rule.match.in) {
+              errors.push(`${path}.match.in: is required`);
+            } else {
+              validateTokenMatcher(rule.match.in, `${path}.match.in`);
+            }
+            if (!rule.match.out) {
+              errors.push(`${path}.match.out: is required`);
+            } else {
+              validateTokenMatcher(rule.match.out, `${path}.match.out`);
+            }
+          }
+
+          if (!rule.fee) {
+            errors.push(`${path}.fee: is required`);
+          } else {
+            validateFee(rule.fee, `${path}.fee`);
+          }
+
+          validateDateString(rule.valid_from, `${path}.valid_from`);
+          validateDateString(rule.valid_until, `${path}.valid_until`);
+        });
+      }
+
+      return errors;
+    }
+
     function importJson() {
       try {
         const json = document.getElementById('jsonImport').value;
         const config = JSON.parse(json);
+
+        // Validate the config before importing
+        const validationErrors = validateImportedConfig(config);
+        if (validationErrors.length > 0) {
+          alert('Invalid configuration:\n\n' + validationErrors.join('\n'));
+          return;
+        }
 
         if (config.default_fee) {
           const df = Array.isArray(config.default_fee) ? config.default_fee[0] : config.default_fee;

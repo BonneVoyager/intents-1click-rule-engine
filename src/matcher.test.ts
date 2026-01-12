@@ -51,7 +51,7 @@ describe("RuleMatcher", () => {
     it("returns default fee when no rules exist", () => {
       const config: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [],
       };
 
@@ -68,7 +68,7 @@ describe("RuleMatcher", () => {
     it("returns default fee when token not found in registry", () => {
       const config: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [],
       };
 
@@ -88,7 +88,7 @@ describe("RuleMatcher", () => {
     it("matches USDC to USDC swap across chains", () => {
       const config: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
             id: "usdc-to-usdc",
@@ -97,7 +97,7 @@ describe("RuleMatcher", () => {
               in: { symbol: "USDC" },
               out: { symbol: "USDC" },
             },
-            fee: { type: "bps", bps: 10 },
+            fee: { type: "bps", bps: 10, recipient: "fees.near" },
           },
         ],
       };
@@ -118,7 +118,7 @@ describe("RuleMatcher", () => {
     it("does not match USDC to WBTC for USDC-only rule", () => {
       const config: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
             id: "usdc-to-usdc",
@@ -127,7 +127,7 @@ describe("RuleMatcher", () => {
               in: { symbol: "USDC" },
               out: { symbol: "USDC" },
             },
-            fee: { type: "bps", bps: 10 },
+            fee: { type: "bps", bps: 10, recipient: "fees.near" },
           },
         ],
       };
@@ -147,7 +147,7 @@ describe("RuleMatcher", () => {
     it("matches * wildcard for blockchain", () => {
       const config: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
             id: "all-usdc",
@@ -156,7 +156,7 @@ describe("RuleMatcher", () => {
               in: { blockchain: "*", symbol: "USDC" },
               out: { blockchain: "*", symbol: "USDC" },
             },
-            fee: { type: "bps", bps: 5 },
+            fee: { type: "bps", bps: 5, recipient: "fees.near" },
           },
         ],
       };
@@ -176,7 +176,7 @@ describe("RuleMatcher", () => {
     it("matches exact assetId pair", () => {
       const config: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
             id: "eth-usdc-to-wbtc",
@@ -185,7 +185,7 @@ describe("RuleMatcher", () => {
               in: { assetId: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near" },
               out: { assetId: "nep141:eth-0x2260fac5e5542a773aa44fbcfedf7c193bc2c599.omft.near" },
             },
-            fee: { type: "bps", bps: 3 },
+            fee: { type: "bps", bps: 3, recipient: "fees.near" },
           },
         ],
       };
@@ -206,7 +206,7 @@ describe("RuleMatcher", () => {
     it("matches * wildcard for symbol", () => {
       const config: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
             id: "eth-to-any",
@@ -215,7 +215,7 @@ describe("RuleMatcher", () => {
               in: { blockchain: "eth", symbol: "*" },
               out: { blockchain: "*", symbol: "*" },
             },
-            fee: { type: "bps", bps: 12 },
+            fee: { type: "bps", bps: 12, recipient: "fees.near" },
           },
         ],
       };
@@ -235,7 +235,7 @@ describe("RuleMatcher", () => {
     it("uses default priority of 100 when not specified", () => {
       const config: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
             id: "no-priority",
@@ -244,7 +244,7 @@ describe("RuleMatcher", () => {
               in: { symbol: "USDC" },
               out: { symbol: "USDC" },
             },
-            fee: { type: "bps", bps: 10 },
+            fee: { type: "bps", bps: 10, recipient: "fees.near" },
           },
           {
             id: "low-priority",
@@ -254,7 +254,7 @@ describe("RuleMatcher", () => {
               in: { symbol: "USDC" },
               out: { symbol: "USDC" },
             },
-            fee: { type: "bps", bps: 15 },
+            fee: { type: "bps", bps: 15, recipient: "fees.near" },
           },
         ],
       };
@@ -273,7 +273,7 @@ describe("RuleMatcher", () => {
     it("first matching rule wins when priorities are equal", () => {
       const config: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
             id: "first-rule",
@@ -283,7 +283,7 @@ describe("RuleMatcher", () => {
               in: { symbol: "USDC" },
               out: { symbol: "USDC" },
             },
-            fee: { type: "bps", bps: 5 },
+            fee: { type: "bps", bps: 5, recipient: "fees.near" },
           },
           {
             id: "second-rule",
@@ -293,7 +293,7 @@ describe("RuleMatcher", () => {
               in: { symbol: "USDC" },
               out: { symbol: "USDC" },
             },
-            fee: { type: "bps", bps: 10 },
+            fee: { type: "bps", bps: 10, recipient: "fees.near" },
           },
         ],
       };
@@ -312,7 +312,7 @@ describe("RuleMatcher", () => {
     it("higher priority rule wins over lower priority", () => {
       const config: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
             id: "low-priority",
@@ -322,7 +322,7 @@ describe("RuleMatcher", () => {
               in: { symbol: "USDC" },
               out: { symbol: "USDC" },
             },
-            fee: { type: "bps", bps: 15 },
+            fee: { type: "bps", bps: 15, recipient: "fees.near" },
           },
           {
             id: "high-priority",
@@ -332,7 +332,7 @@ describe("RuleMatcher", () => {
               in: { symbol: "USDC" },
               out: { symbol: "USDC" },
             },
-            fee: { type: "bps", bps: 5 },
+            fee: { type: "bps", bps: 5, recipient: "fees.near" },
           },
         ],
       };
@@ -351,7 +351,7 @@ describe("RuleMatcher", () => {
     it("more specific assetId rule should have higher priority", () => {
       const config: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
             id: "generic-usdc",
@@ -361,7 +361,7 @@ describe("RuleMatcher", () => {
               in: { symbol: "USDC" },
               out: { symbol: "USDC" },
             },
-            fee: { type: "bps", bps: 10 },
+            fee: { type: "bps", bps: 10, recipient: "fees.near" },
           },
           {
             id: "specific-eth-polygon",
@@ -371,7 +371,7 @@ describe("RuleMatcher", () => {
               in: { assetId: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near" },
               out: { assetId: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near" },
             },
-            fee: { type: "bps", bps: 2 },
+            fee: { type: "bps", bps: 2, recipient: "fees.near" },
           },
         ],
       };
@@ -392,7 +392,7 @@ describe("RuleMatcher", () => {
     it("skips disabled rules", () => {
       const config: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
             id: "disabled-rule",
@@ -401,7 +401,7 @@ describe("RuleMatcher", () => {
               in: { symbol: "USDC" },
               out: { symbol: "USDC" },
             },
-            fee: { type: "bps", bps: 1 },
+            fee: { type: "bps", bps: 1, recipient: "fees.near" },
           },
         ],
       };
@@ -421,7 +421,7 @@ describe("RuleMatcher", () => {
     it("matches blockchain + symbol combination", () => {
       const config: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
             id: "eth-usdc-to-any-wbtc",
@@ -430,7 +430,7 @@ describe("RuleMatcher", () => {
               in: { blockchain: "eth", symbol: "USDC" },
               out: { symbol: "WBTC" },
             },
-            fee: { type: "bps", bps: 7 },
+            fee: { type: "bps", bps: 7, recipient: "fees.near" },
           },
         ],
       };
@@ -450,7 +450,7 @@ describe("RuleMatcher", () => {
     it("does not match when blockchain differs in mixed rule", () => {
       const config: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
             id: "eth-usdc-to-any-wbtc",
@@ -459,7 +459,7 @@ describe("RuleMatcher", () => {
               in: { blockchain: "eth", symbol: "USDC" },
               out: { symbol: "WBTC" },
             },
-            fee: { type: "bps", bps: 7 },
+            fee: { type: "bps", bps: 7, recipient: "fees.near" },
           },
         ],
       };
@@ -479,7 +479,7 @@ describe("RuleMatcher", () => {
     it("matches assetId + symbol combination", () => {
       const config: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
             id: "specific-usdc-to-any-usdc",
@@ -488,7 +488,7 @@ describe("RuleMatcher", () => {
               in: { assetId: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near" },
               out: { symbol: "USDC", blockchain: "*" },
             },
-            fee: { type: "bps", bps: 4 },
+            fee: { type: "bps", bps: 4, recipient: "fees.near" },
           },
         ],
       };
@@ -510,7 +510,7 @@ describe("RuleMatcher", () => {
     it("matches when blockchain is in array", () => {
       const config: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
             id: "l2-chains",
@@ -519,7 +519,7 @@ describe("RuleMatcher", () => {
               in: { blockchain: ["arb", "polygon", "sol"] },
               out: { blockchain: "*" },
             },
-            fee: { type: "bps", bps: 5 },
+            fee: { type: "bps", bps: 5, recipient: "fees.near" },
           },
         ],
       };
@@ -539,7 +539,7 @@ describe("RuleMatcher", () => {
     it("does not match when blockchain is not in array", () => {
       const config: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
             id: "l2-chains",
@@ -548,7 +548,7 @@ describe("RuleMatcher", () => {
               in: { blockchain: ["arb", "polygon", "sol"] },
               out: { blockchain: "*" },
             },
-            fee: { type: "bps", bps: 5 },
+            fee: { type: "bps", bps: 5, recipient: "fees.near" },
           },
         ],
       };
@@ -568,7 +568,7 @@ describe("RuleMatcher", () => {
     it("matches when symbol is in array", () => {
       const config: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
             id: "stablecoins",
@@ -577,7 +577,7 @@ describe("RuleMatcher", () => {
               in: { symbol: ["USDC", "USDT", "DAI"] },
               out: { symbol: ["USDC", "USDT", "DAI"] },
             },
-            fee: { type: "bps", bps: 3 },
+            fee: { type: "bps", bps: 3, recipient: "fees.near" },
           },
         ],
       };
@@ -596,7 +596,7 @@ describe("RuleMatcher", () => {
     it("combines array with negation (OR logic)", () => {
       const config: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
             id: "arb-or-not-eth",
@@ -605,7 +605,7 @@ describe("RuleMatcher", () => {
               in: { blockchain: ["arb", "!eth"] },
               out: { blockchain: "*" },
             },
-            fee: { type: "bps", bps: 7 },
+            fee: { type: "bps", bps: 7, recipient: "fees.near" },
           },
         ],
       };
@@ -639,7 +639,7 @@ describe("RuleMatcher", () => {
     it("matches rule with no time constraints", () => {
       const config: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
             id: "no-time-limit",
@@ -648,7 +648,7 @@ describe("RuleMatcher", () => {
               in: { symbol: "USDC" },
               out: { symbol: "USDC" },
             },
-            fee: { type: "bps", bps: 10 },
+            fee: { type: "bps", bps: 10, recipient: "fees.near" },
           },
         ],
       };
@@ -667,7 +667,7 @@ describe("RuleMatcher", () => {
       const pastDate = new Date(Date.now() - 86400000).toISOString(); // 1 day ago
       const config: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
             id: "started-yesterday",
@@ -677,7 +677,7 @@ describe("RuleMatcher", () => {
               in: { symbol: "USDC" },
               out: { symbol: "USDC" },
             },
-            fee: { type: "bps", bps: 5 },
+            fee: { type: "bps", bps: 5, recipient: "fees.near" },
           },
         ],
       };
@@ -696,7 +696,7 @@ describe("RuleMatcher", () => {
       const futureDate = new Date(Date.now() + 86400000).toISOString(); // 1 day from now
       const config: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
             id: "starts-tomorrow",
@@ -706,7 +706,7 @@ describe("RuleMatcher", () => {
               in: { symbol: "USDC" },
               out: { symbol: "USDC" },
             },
-            fee: { type: "bps", bps: 5 },
+            fee: { type: "bps", bps: 5, recipient: "fees.near" },
           },
         ],
       };
@@ -725,7 +725,7 @@ describe("RuleMatcher", () => {
       const futureDate = new Date(Date.now() + 86400000).toISOString(); // 1 day from now
       const config: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
             id: "ends-tomorrow",
@@ -735,7 +735,7 @@ describe("RuleMatcher", () => {
               in: { symbol: "USDC" },
               out: { symbol: "USDC" },
             },
-            fee: { type: "bps", bps: 5 },
+            fee: { type: "bps", bps: 5, recipient: "fees.near" },
           },
         ],
       };
@@ -754,7 +754,7 @@ describe("RuleMatcher", () => {
       const pastDate = new Date(Date.now() - 86400000).toISOString(); // 1 day ago
       const config: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
             id: "ended-yesterday",
@@ -764,7 +764,7 @@ describe("RuleMatcher", () => {
               in: { symbol: "USDC" },
               out: { symbol: "USDC" },
             },
-            fee: { type: "bps", bps: 5 },
+            fee: { type: "bps", bps: 5, recipient: "fees.near" },
           },
         ],
       };
@@ -784,7 +784,7 @@ describe("RuleMatcher", () => {
       const futureDate = new Date(Date.now() + 86400000).toISOString();
       const config: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
             id: "promo-active",
@@ -795,7 +795,7 @@ describe("RuleMatcher", () => {
               in: { symbol: "USDC" },
               out: { symbol: "USDC" },
             },
-            fee: { type: "bps", bps: 0 },
+            fee: { type: "bps", bps: 0, recipient: "fees.near" },
           },
         ],
       };
@@ -815,7 +815,7 @@ describe("RuleMatcher", () => {
     it("matches when blockchain is not the negated value", () => {
       const config: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
             id: "not-eth",
@@ -824,7 +824,7 @@ describe("RuleMatcher", () => {
               in: { blockchain: "!eth" },
               out: { blockchain: "*" },
             },
-            fee: { type: "bps", bps: 5 },
+            fee: { type: "bps", bps: 5, recipient: "fees.near" },
           },
         ],
       };
@@ -844,7 +844,7 @@ describe("RuleMatcher", () => {
     it("does not match when blockchain equals negated value", () => {
       const config: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
             id: "not-eth",
@@ -853,7 +853,7 @@ describe("RuleMatcher", () => {
               in: { blockchain: "!eth" },
               out: { blockchain: "*" },
             },
-            fee: { type: "bps", bps: 5 },
+            fee: { type: "bps", bps: 5, recipient: "fees.near" },
           },
         ],
       };
@@ -873,7 +873,7 @@ describe("RuleMatcher", () => {
     it("matches negated symbol", () => {
       const config: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
             id: "not-usdc",
@@ -882,7 +882,7 @@ describe("RuleMatcher", () => {
               in: { symbol: "!USDC" },
               out: { symbol: "*" },
             },
-            fee: { type: "bps", bps: 15 },
+            fee: { type: "bps", bps: 15, recipient: "fees.near" },
           },
         ],
       };
@@ -902,7 +902,7 @@ describe("RuleMatcher", () => {
     it("combines negation with other matchers", () => {
       const config: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
             id: "usdc-not-to-eth",
@@ -911,7 +911,7 @@ describe("RuleMatcher", () => {
               in: { symbol: "USDC" },
               out: { symbol: "USDC", blockchain: "!eth" },
             },
-            fee: { type: "bps", bps: 8 },
+            fee: { type: "bps", bps: 8, recipient: "fees.near" },
           },
         ],
       };
@@ -939,7 +939,7 @@ describe("RuleMatcher", () => {
     it("matches specific blockchain routes", () => {
       const config: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
             id: "eth-to-polygon",
@@ -948,7 +948,7 @@ describe("RuleMatcher", () => {
               in: { blockchain: "eth" },
               out: { blockchain: "polygon" },
             },
-            fee: { type: "bps", bps: 8 },
+            fee: { type: "bps", bps: 8, recipient: "fees.near" },
           },
         ],
       };

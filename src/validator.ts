@@ -1,8 +1,34 @@
-import type { FeeConfig, Rule, TokenMatcher } from "./types";
+import type { FeeConfig, Fee, Rule, TokenMatcher } from "./types";
 
 export interface ValidationError {
   path: string;
   message: string;
+}
+
+const NEAR_ACCOUNT_REGEX = /^(?:[a-z\d]+[-_])*[a-z\d]+(?:\.[a-z\d]+[-_]*[a-z\d]+)*$/;
+const NEAR_IMPLICIT_ACCOUNT_REGEX = /^[a-f0-9]{64}$/;
+
+function isValidNearAccount(account: string): boolean {
+  if (account.length < 2 || account.length > 64) return false;
+  return NEAR_ACCOUNT_REGEX.test(account) || NEAR_IMPLICIT_ACCOUNT_REGEX.test(account);
+}
+
+function validateFee(fee: Fee, path: string): ValidationError[] {
+  const errors: ValidationError[] = [];
+
+  if (fee.type !== "bps") {
+    errors.push({ path: `${path}.type`, message: "fee.type must be 'bps'" });
+  }
+  if (typeof fee.bps !== "number" || fee.bps < 0) {
+    errors.push({ path: `${path}.bps`, message: "fee.bps must be a non-negative number" });
+  }
+  if (!fee.recipient || typeof fee.recipient !== "string") {
+    errors.push({ path: `${path}.recipient`, message: "fee.recipient is required and must be a string" });
+  } else if (!isValidNearAccount(fee.recipient)) {
+    errors.push({ path: `${path}.recipient`, message: "fee.recipient must be a valid NEAR account" });
+  }
+
+  return errors;
 }
 
 export interface ValidationResult {
@@ -59,12 +85,7 @@ function validateRule(rule: Rule, index: number): ValidationError[] {
   if (!rule.fee) {
     errors.push({ path: `${path}.fee`, message: "fee is required" });
   } else {
-    if (rule.fee.type !== "bps") {
-      errors.push({ path: `${path}.fee.type`, message: "fee.type must be 'bps'" });
-    }
-    if (typeof rule.fee.bps !== "number" || rule.fee.bps < 0) {
-      errors.push({ path: `${path}.fee.bps`, message: "fee.bps must be a non-negative number" });
-    }
+    errors.push(...validateFee(rule.fee, `${path}.fee`));
   }
 
   return errors;
@@ -80,12 +101,7 @@ export function validateConfig(config: FeeConfig): ValidationResult {
   if (!config.default_fee) {
     errors.push({ path: "default_fee", message: "default_fee is required" });
   } else {
-    if (config.default_fee.type !== "bps") {
-      errors.push({ path: "default_fee.type", message: "default_fee.type must be 'bps'" });
-    }
-    if (typeof config.default_fee.bps !== "number" || config.default_fee.bps < 0) {
-      errors.push({ path: "default_fee.bps", message: "default_fee.bps must be a non-negative number" });
-    }
+    errors.push(...validateFee(config.default_fee, "default_fee"));
   }
 
   if (!Array.isArray(config.rules)) {

@@ -15,7 +15,7 @@ import { RuleEngine } from "intents-1click-rule-engine";
 
 const feeConfig = {
   version: "1.0.0",
-  default_fee: { type: "bps", bps: 20 },
+  default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
   rules: [
     {
       id: "usdc-swaps",
@@ -25,7 +25,7 @@ const feeConfig = {
         in: { symbol: "USDC", blockchain: "*" },
         out: { symbol: "USDC", blockchain: "*" },
       },
-      fee: { type: "bps", bps: 10 },
+      fee: { type: "bps", bps: 10, recipient: "fees.near" },
     },
   ],
 };
@@ -94,7 +94,7 @@ Special patterns:
     in: { symbol: "USDC" },
     out: { symbol: "USDC" },
   },
-  fee: { type: "bps", bps: 10 },
+  fee: { type: "bps", bps: 10, recipient: "fees.near" },
 }
 ```
 
@@ -109,7 +109,7 @@ Special patterns:
     in: { blockchain: "eth" },
     out: { blockchain: "polygon" },
   },
-  fee: { type: "bps", bps: 15 },
+  fee: { type: "bps", bps: 15, recipient: "fees.near" },
 }
 ```
 
@@ -124,7 +124,7 @@ Special patterns:
     in: { assetId: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near" },
     out: { assetId: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near" },
   },
-  fee: { type: "bps", bps: 5 },
+  fee: { type: "bps", bps: 5, recipient: "fees.near" },
 }
 ```
 
@@ -139,7 +139,7 @@ Special patterns:
     in: { blockchain: "eth", symbol: "USDC" },
     out: { symbol: "USDC", blockchain: "*" },
   },
-  fee: { type: "bps", bps: 8 },
+  fee: { type: "bps", bps: 8, recipient: "fees.near" },
 }
 ```
 
@@ -154,7 +154,7 @@ Special patterns:
     in: { blockchain: "*" },
     out: { blockchain: "sol" },
   },
-  fee: { type: "bps", bps: 25 },
+  fee: { type: "bps", bps: 25, recipient: "fees.near" },
 }
 ```
 
@@ -169,7 +169,7 @@ Special patterns:
     in: { blockchain: "!eth" },
     out: { blockchain: "!eth" },
   },
-  fee: { type: "bps", bps: 12 },
+  fee: { type: "bps", bps: 12, recipient: "fees.near" },
 }
 ```
 
@@ -184,7 +184,7 @@ Special patterns:
     in: { symbol: ["USDC", "USDT", "DAI"] },
     out: { symbol: ["USDC", "USDT", "DAI"] },
   },
-  fee: { type: "bps", bps: 5 },
+  fee: { type: "bps", bps: 5, recipient: "fees.near" },
 }
 ```
 
@@ -197,7 +197,7 @@ Special patterns:
     in: { blockchain: ["arb", "polygon", "base", "op"] },
     out: { blockchain: ["arb", "polygon", "base", "op"] },
   },
-  fee: { type: "bps", bps: 8 },
+  fee: { type: "bps", bps: 8, recipient: "fees.near" },
 }
 ```
 
@@ -214,7 +214,7 @@ Special patterns:
     in: { symbol: "*" },
     out: { symbol: "*" },
   },
-  fee: { type: "bps", bps: 0 },
+  fee: { type: "bps", bps: 0, recipient: "fees.near" },
 }
 ```
 
@@ -229,7 +229,7 @@ Special patterns:
     in: { symbol: "USDC" },
     out: { symbol: "USDC" },
   },
-  fee: { type: "bps", bps: 5 },
+  fee: { type: "bps", bps: 5, recipient: "fees.near" },
 }
 ```
 
@@ -238,7 +238,7 @@ Special patterns:
 ```typescript
 const feeConfig = {
   version: "1.0.0",
-  default_fee: { type: "bps", bps: 30 },
+  default_fee: { type: "bps", bps: 30, recipient: "fees.near" },
   rules: [
     // Most specific first (higher priority)
     {
@@ -249,7 +249,7 @@ const feeConfig = {
         in: { assetId: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near" },
         out: { assetId: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near" },
       },
-      fee: { type: "bps", bps: 5 },
+      fee: { type: "bps", bps: 5, recipient: "fees.near" },
     },
     // Chain + symbol combo
     {
@@ -260,7 +260,7 @@ const feeConfig = {
         in: { blockchain: "eth", symbol: "USDC" },
         out: { blockchain: "*" },
       },
-      fee: { type: "bps", bps: 12 },
+      fee: { type: "bps", bps: 12, recipient: "fees.near" },
     },
     // All stablecoin swaps
     {
@@ -271,7 +271,7 @@ const feeConfig = {
         in: { symbol: "USDC" },
         out: { symbol: "USDC" },
       },
-      fee: { type: "bps", bps: 10 },
+      fee: { type: "bps", bps: 10, recipient: "fees.near" },
     },
     // Disabled rule (won't match)
     {
@@ -282,7 +282,7 @@ const feeConfig = {
         in: { blockchain: "*" },
         out: { blockchain: "*" },
       },
-      fee: { type: "bps", bps: 0 },
+      fee: { type: "bps", bps: 0, recipient: "fees.near" },
     },
   ],
 };

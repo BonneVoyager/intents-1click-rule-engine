@@ -35,7 +35,8 @@ This schema defines fee rules for cross-chain token swaps. It supports a default
 ```json
 "default_fee": {
   "type": "bps",
-  "bps": 20
+  "bps": 20,
+  "recipient": "fees.near"
 }
 ```
 
@@ -91,7 +92,8 @@ Defines the fee when a rule matches.
 ```json
 "fee": {
   "type": "bps",
-  "bps": 10
+  "bps": 10,
+  "recipient": "fees.near"
 }
 ```
 
@@ -99,6 +101,7 @@ Defines the fee when a rule matches.
 |----------|------|----------|-------------|
 | `type` | string | Yes | Fee calculation type (currently only `"bps"` supported) |
 | `bps` | number | Yes (when type=bps) | Basis points for the fee |
+| `recipient` | string | Yes | Recipient of the fee |
 
 ## Rule Evaluation Logic
 
@@ -137,7 +140,8 @@ Defines the fee when a rule matches.
   },
   "fee": {
     "type": "bps",
-    "bps": 10
+    "bps": 10,
+    "recipient": "fees.near"
   }
 }
 ```
@@ -163,7 +167,8 @@ Defines the fee when a rule matches.
   },
   "fee": {
     "type": "bps",
-    "bps": 10
+    "bps": 10,
+    "recipient": "fees.near"
   }
 }
 ```
@@ -190,7 +195,8 @@ Defines the fee when a rule matches.
   },
   "fee": {
     "type": "bps",
-    "bps": 15
+    "bps": 15,
+    "recipient": "fees.near"
   }
 }
 ```
@@ -225,7 +231,8 @@ Defines the fee when a rule matches.
       },
       "fee": {
         "type": "bps",
-        "bps": 10
+        "bps": 10,
+        "recipient": "fees.near"
       }
     },
     {
@@ -243,7 +250,8 @@ Defines the fee when a rule matches.
       },
       "fee": {
         "type": "bps",
-        "bps": 10
+        "bps": 10,
+        "recipient": "fees.near"
       }
     }
   ]
@@ -365,12 +373,14 @@ The rule engine receives quote requests with the following structure:
        "priority": 100,
        "fee": {
          "type": "bps",
-         "bps": 10
+         "bps": 10,
+         "recipient": "fees.near"
        }
      },
      "calculatedFee": {
        "bps": 10,
-       "percentage": 0.10
+       "percentage": 0.10,
+       "recipient": "fees.near"
      }
    }
    ```
@@ -543,7 +553,8 @@ Accept: */*
   "appFees": [
     {
       "recipient": "recipient.near",
-      "fee": 100
+      "fee": 100,
+      "recipient": "fees.near"
     }
   ]
 }
@@ -567,7 +578,8 @@ When a rule matches, the engine should return:
   },
   "fee": {
     "type": "bps",
-    "bps": 10
+    "bps": 10,
+    "recipient": "fees.near"
   },
   "matchDetails": {
     "originToken": {
@@ -593,7 +605,8 @@ When a rule matches, the engine should return:
   "matched": false,
   "fee": {
     "type": "bps",
-    "bps": 20
+    "bps": 20,
+    "recipient": "fees.near"
   },
   "defaultFeeApplied": true
 }
@@ -662,7 +675,8 @@ When a rule matches, the engine should return:
   },
   "fee": {
     "type": "bps",
-    "bps": 10
+    "bps": 10,
+    "recipient": "fees.near"
   },
   "matchDetails": {
     "originToken": {
@@ -688,7 +702,8 @@ When a rule matches, the engine should return:
   "matched": false,
   "fee": {
     "type": "bps",
-    "bps": 20
+    "bps": 20,
+    "recipient": "fees.near"
   },
   "defaultFeeApplied": true
 }

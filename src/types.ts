@@ -19,6 +19,7 @@ export interface RuleMatch {
 export interface Fee {
   type: "bps";
   bps: number;
+  recipient: string;
 }
 
 export interface Rule {

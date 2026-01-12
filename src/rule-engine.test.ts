@@ -4,7 +4,7 @@ import type { FeeConfig } from "./types";
 
 const validConfig: FeeConfig = {
   version: "1.0.0",
-  default_fee: { type: "bps", bps: 20 },
+  default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
   rules: [
     {
       id: "usdc-swaps",
@@ -13,7 +13,7 @@ const validConfig: FeeConfig = {
         in: { symbol: "USDC" },
         out: { symbol: "USDC" },
       },
-      fee: { type: "bps", bps: 10 },
+      fee: { type: "bps", bps: 10, recipient: "fees.near" },
     },
   ],
 };
@@ -47,19 +47,19 @@ describe("RuleEngine", () => {
     it("throws on invalid config - duplicate rule ids", () => {
       const invalidConfig: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
             id: "same-id",
             enabled: true,
             match: { in: { symbol: "USDC" }, out: { symbol: "USDC" } },
-            fee: { type: "bps", bps: 10 },
+            fee: { type: "bps", bps: 10, recipient: "fees.near" },
           },
           {
             id: "same-id",
             enabled: true,
             match: { in: { symbol: "WBTC" }, out: { symbol: "WBTC" } },
-            fee: { type: "bps", bps: 15 },
+            fee: { type: "bps", bps: 15, recipient: "fees.near" },
           },
         ],
       };
@@ -70,13 +70,13 @@ describe("RuleEngine", () => {
     it("throws on invalid config - missing rule identifier", () => {
       const invalidConfig: FeeConfig = {
         version: "1.0.0",
-        default_fee: { type: "bps", bps: 20 },
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
         rules: [
           {
             id: "test",
             enabled: true,
             match: { in: {}, out: { symbol: "USDC" } },
-            fee: { type: "bps", bps: 10 },
+            fee: { type: "bps", bps: 10, recipient: "fees.near" },
           },
         ],
       };

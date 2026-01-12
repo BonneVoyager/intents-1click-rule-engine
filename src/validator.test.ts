@@ -6,7 +6,7 @@ describe("validateConfig", () => {
   it("validates a correct config", () => {
     const config: FeeConfig = {
       version: "1.0.0",
-      default_fee: { type: "bps", bps: 20 },
+      default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
       rules: [
         {
           id: "test-rule",
@@ -15,7 +15,7 @@ describe("validateConfig", () => {
             in: { symbol: "USDC" },
             out: { symbol: "USDC" },
           },
-          fee: { type: "bps", bps: 10 },
+          fee: { type: "bps", bps: 10, recipient: "fees.near" },
         },
       ],
     };
@@ -50,7 +50,7 @@ describe("validateConfig", () => {
   it("validates default_fee.bps is non-negative", () => {
     const config: FeeConfig = {
       version: "1.0.0",
-      default_fee: { type: "bps", bps: -10 },
+      default_fee: { type: "bps", bps: -10, recipient: "fees.near" },
       rules: [],
     };
 
@@ -62,7 +62,7 @@ describe("validateConfig", () => {
   it("requires at least one identifier in match.in", () => {
     const config: FeeConfig = {
       version: "1.0.0",
-      default_fee: { type: "bps", bps: 20 },
+      default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
       rules: [
         {
           id: "test-rule",
@@ -71,7 +71,7 @@ describe("validateConfig", () => {
             in: {},
             out: { symbol: "USDC" },
           },
-          fee: { type: "bps", bps: 10 },
+          fee: { type: "bps", bps: 10, recipient: "fees.near" },
         },
       ],
     };
@@ -84,19 +84,19 @@ describe("validateConfig", () => {
   it("detects duplicate rule ids", () => {
     const config: FeeConfig = {
       version: "1.0.0",
-      default_fee: { type: "bps", bps: 20 },
+      default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
       rules: [
         {
           id: "same-id",
           enabled: true,
           match: { in: { symbol: "USDC" }, out: { symbol: "USDC" } },
-          fee: { type: "bps", bps: 10 },
+          fee: { type: "bps", bps: 10, recipient: "fees.near" },
         },
         {
           id: "same-id",
           enabled: true,
           match: { in: { symbol: "WBTC" }, out: { symbol: "WBTC" } },
-          fee: { type: "bps", bps: 15 },
+          fee: { type: "bps", bps: 15, recipient: "fees.near" },
         },
       ],
     };
@@ -109,7 +109,7 @@ describe("validateConfig", () => {
   it("validates priority is non-negative", () => {
     const config: FeeConfig = {
       version: "1.0.0",
-      default_fee: { type: "bps", bps: 20 },
+      default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
       rules: [
         {
           id: "test-rule",
@@ -119,7 +119,7 @@ describe("validateConfig", () => {
             in: { symbol: "USDC" },
             out: { symbol: "USDC" },
           },
-          fee: { type: "bps", bps: 10 },
+          fee: { type: "bps", bps: 10, recipient: "fees.near" },
         },
       ],
     };
@@ -204,13 +204,13 @@ describe("validateConfig", () => {
   it("validates rule fee.bps is non-negative", () => {
     const config: FeeConfig = {
       version: "1.0.0",
-      default_fee: { type: "bps", bps: 20 },
+      default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
       rules: [
         {
           id: "test-rule",
           enabled: true,
           match: { in: { symbol: "USDC" }, out: { symbol: "USDC" } },
-          fee: { type: "bps", bps: -5 },
+          fee: { type: "bps", bps: -5, recipient: "fees.near" },
         },
       ],
     };
@@ -242,7 +242,7 @@ describe("validateConfig", () => {
   it("requires at least one identifier in match.out", () => {
     const config: FeeConfig = {
       version: "1.0.0",
-      default_fee: { type: "bps", bps: 20 },
+      default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
       rules: [
         {
           id: "test-rule",
@@ -251,7 +251,7 @@ describe("validateConfig", () => {
             in: { symbol: "USDC" },
             out: {},
           },
-          fee: { type: "bps", bps: 10 },
+          fee: { type: "bps", bps: 10, recipient: "fees.near" },
         },
       ],
     };
@@ -259,5 +259,92 @@ describe("validateConfig", () => {
     const result = validateConfig(config);
     expect(result.valid).toBe(false);
     expect(result.errors.some((e) => e.path === "rules[0].match.out")).toBe(true);
+  });
+
+  it("requires default_fee.recipient", () => {
+    const config = {
+      version: "1.0.0",
+      default_fee: { type: "bps", bps: 20 },
+      rules: [],
+    } as unknown as FeeConfig;
+
+    const result = validateConfig(config);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.path === "default_fee.recipient")).toBe(true);
+  });
+
+  it("requires rule fee.recipient", () => {
+    const config = {
+      version: "1.0.0",
+      default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
+      rules: [
+        {
+          id: "test-rule",
+          enabled: true,
+          match: { in: { symbol: "USDC" }, out: { symbol: "USDC" } },
+          fee: { type: "bps", bps: 10 },
+        },
+      ],
+    } as unknown as FeeConfig;
+
+    const result = validateConfig(config);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.path === "rules[0].fee.recipient")).toBe(true);
+  });
+
+  it("validates default_fee.recipient is valid NEAR account", () => {
+    const config: FeeConfig = {
+      version: "1.0.0",
+      default_fee: { type: "bps", bps: 20, recipient: "INVALID-NEAR-ACCOUNT" },
+      rules: [],
+    };
+
+    const result = validateConfig(config);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.path === "default_fee.recipient")).toBe(true);
+  });
+
+  it("validates rule fee.recipient is valid NEAR account", () => {
+    const config: FeeConfig = {
+      version: "1.0.0",
+      default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
+      rules: [
+        {
+          id: "test-rule",
+          enabled: true,
+          match: { in: { symbol: "USDC" }, out: { symbol: "USDC" } },
+          fee: { type: "bps", bps: 10, recipient: "Invalid Account!" },
+        },
+      ],
+    };
+
+    const result = validateConfig(config);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.path === "rules[0].fee.recipient")).toBe(true);
+  });
+
+  it("accepts valid NEAR implicit account (64 hex chars)", () => {
+    const config: FeeConfig = {
+      version: "1.0.0",
+      default_fee: { type: "bps", bps: 20, recipient: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" },
+      rules: [],
+    };
+
+    const result = validateConfig(config);
+    expect(result.valid).toBe(true);
+  });
+
+  it("accepts valid NEAR named accounts", () => {
+    const validAccounts = ["fees.near", "sub.account.near", "my-account.testnet", "a1_2.near"];
+    for (const account of validAccounts) {
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20, recipient: account },
+        rules: [],
+      };
+
+      const result = validateConfig(config);
+      expect(result.valid).toBe(true);
+    }
   });
 });

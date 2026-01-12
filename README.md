@@ -73,6 +73,7 @@ Each rule can match on:
 Special patterns:
 - `"*"` - wildcard, matches any value
 - `"!value"` - negation, matches anything except `value`
+- `["a", "b"]` - array, matches any value in the list (OR logic)
 
 ## Rule Examples
 
@@ -163,6 +164,34 @@ Special patterns:
     out: { blockchain: "!eth" },
   },
   fee: { type: "bps", bps: 12 },
+}
+```
+
+### Array values (match multiple options)
+
+```typescript
+{
+  id: "stablecoin-swaps",
+  enabled: true,
+  priority: 100,
+  match: {
+    in: { symbol: ["USDC", "USDT", "DAI"] },
+    out: { symbol: ["USDC", "USDT", "DAI"] },
+  },
+  fee: { type: "bps", bps: 5 },
+}
+```
+
+```typescript
+{
+  id: "l2-to-l2",
+  enabled: true,
+  priority: 100,
+  match: {
+    in: { blockchain: ["arb", "polygon", "base", "op"] },
+    out: { blockchain: ["arb", "polygon", "base", "op"] },
+  },
+  fee: { type: "bps", bps: 8 },
 }
 ```
 

@@ -6,8 +6,8 @@ export interface TokenInfo {
 }
 
 export interface TokenMatcher {
-  blockchain?: string;
-  symbol?: string;
+  blockchain?: string | string[];
+  symbol?: string | string[];
   assetId?: string;
 }
 

@@ -506,6 +506,135 @@ describe("RuleMatcher", () => {
     });
   });
 
+  describe("array matching", () => {
+    it("matches when blockchain is in array", () => {
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20 },
+        rules: [
+          {
+            id: "l2-chains",
+            enabled: true,
+            match: {
+              in: { blockchain: ["arb", "polygon", "sol"] },
+              out: { blockchain: "*" },
+            },
+            fee: { type: "bps", bps: 5 },
+          },
+        ],
+      };
+
+      const matcher = new RuleMatcher(config, registry);
+
+      // ARB should match
+      const result = matcher.match({
+        originAsset: "nep141:arb-0xaf88d065e77c8cc2239327c5edb3a432268e5831.omft.near",
+        destinationAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+      });
+
+      expect(result.matched).toBe(true);
+      expect(result.fee.bps).toBe(5);
+    });
+
+    it("does not match when blockchain is not in array", () => {
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20 },
+        rules: [
+          {
+            id: "l2-chains",
+            enabled: true,
+            match: {
+              in: { blockchain: ["arb", "polygon", "sol"] },
+              out: { blockchain: "*" },
+            },
+            fee: { type: "bps", bps: 5 },
+          },
+        ],
+      };
+
+      const matcher = new RuleMatcher(config, registry);
+
+      // ETH should NOT match
+      const result = matcher.match({
+        originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+        destinationAsset: "nep141:sol-usdc.omft.near",
+      });
+
+      expect(result.matched).toBe(false);
+      expect(result.fee.bps).toBe(20);
+    });
+
+    it("matches when symbol is in array", () => {
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20 },
+        rules: [
+          {
+            id: "stablecoins",
+            enabled: true,
+            match: {
+              in: { symbol: ["USDC", "USDT", "DAI"] },
+              out: { symbol: ["USDC", "USDT", "DAI"] },
+            },
+            fee: { type: "bps", bps: 3 },
+          },
+        ],
+      };
+
+      const matcher = new RuleMatcher(config, registry);
+
+      const result = matcher.match({
+        originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+      });
+
+      expect(result.matched).toBe(true);
+      expect(result.fee.bps).toBe(3);
+    });
+
+    it("combines array with negation (OR logic)", () => {
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20 },
+        rules: [
+          {
+            id: "arb-or-not-eth",
+            enabled: true,
+            match: {
+              in: { blockchain: ["arb", "!eth"] },
+              out: { blockchain: "*" },
+            },
+            fee: { type: "bps", bps: 7 },
+          },
+        ],
+      };
+
+      const matcher = new RuleMatcher(config, registry);
+
+      // ARB matches ("arb" matches)
+      const result1 = matcher.match({
+        originAsset: "nep141:arb-0xaf88d065e77c8cc2239327c5edb3a432268e5831.omft.near",
+        destinationAsset: "nep141:sol-usdc.omft.near",
+      });
+      expect(result1.matched).toBe(true);
+
+      // Polygon matches ("!eth" matches - polygon is not eth)
+      const result2 = matcher.match({
+        originAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+        destinationAsset: "nep141:sol-usdc.omft.near",
+      });
+      expect(result2.matched).toBe(true);
+
+      // ETH does NOT match ("arb" fails, "!eth" fails)
+      const result3 = matcher.match({
+        originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+        destinationAsset: "nep141:sol-usdc.omft.near",
+      });
+      expect(result3.matched).toBe(false);
+    });
+  });
+
   describe("negation matching", () => {
     it("matches when blockchain is not the negated value", () => {
       const config: FeeConfig = {

@@ -19,7 +19,7 @@ export class RuleMatcher {
     });
   }
 
-  private matchesValue(pattern: string, value: string): boolean {
+  private matchesSinglePattern(pattern: string, value: string): boolean {
     if (pattern === "*") return true;
     if (pattern.startsWith("!")) {
       return value !== pattern.slice(1);
@@ -27,8 +27,15 @@ export class RuleMatcher {
     return pattern === value;
   }
 
+  private matchesValue(pattern: string | string[], value: string): boolean {
+    if (Array.isArray(pattern)) {
+      return pattern.some((p) => this.matchesSinglePattern(p, value));
+    }
+    return this.matchesSinglePattern(pattern, value);
+  }
+
   private matchesToken(matcher: TokenMatcher, token: TokenInfo): boolean {
-    if (matcher.assetId && !this.matchesValue(matcher.assetId, token.assetId)) {
+    if (matcher.assetId && !this.matchesSinglePattern(matcher.assetId, token.assetId)) {
       return false;
     }
     if (matcher.blockchain && !this.matchesValue(matcher.blockchain, token.blockchain)) {

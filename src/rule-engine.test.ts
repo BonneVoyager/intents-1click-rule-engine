@@ -1,6 +1,14 @@
 import { describe, it, expect } from "bun:test";
 import { RuleEngine, calculateFee, calculateAmountAfterFee } from "./rule-engine";
-import type { FeeConfig } from "./types";
+import type { Fee, FeeConfig } from "./types";
+
+// Helper to get bps from fee (handles both single Fee and Fee[])
+function getBps(fee: Fee | Fee[]): number {
+  if (Array.isArray(fee)) {
+    return fee.reduce((sum, f) => sum + f.bps, 0);
+  }
+  return fee.bps;
+}
 
 const validConfig: FeeConfig = {
   version: "1.0.0",
@@ -115,7 +123,7 @@ describe("RuleEngine", () => {
       });
 
       expect(result.matched).toBe(false);
-      expect(result.fee.bps).toBe(20);
+      expect(getBps(result.fee)).toBe(20);
     });
   });
 });

@@ -13,7 +13,7 @@ function isValidNearAccount(account: string): boolean {
   return NEAR_ACCOUNT_REGEX.test(account) || NEAR_IMPLICIT_ACCOUNT_REGEX.test(account);
 }
 
-function validateFee(fee: Fee, path: string): ValidationError[] {
+function validateSingleFee(fee: Fee, path: string): ValidationError[] {
   const errors: ValidationError[] = [];
 
   if (fee.type !== "bps") {
@@ -26,6 +26,26 @@ function validateFee(fee: Fee, path: string): ValidationError[] {
     errors.push({ path: `${path}.recipient`, message: "fee.recipient is required and must be a string" });
   } else if (!isValidNearAccount(fee.recipient)) {
     errors.push({ path: `${path}.recipient`, message: "fee.recipient must be a valid NEAR account" });
+  }
+
+  return errors;
+}
+
+function validateFee(fee: Fee | Fee[], path: string): ValidationError[] {
+  const errors: ValidationError[] = [];
+
+  if (Array.isArray(fee)) {
+    if (fee.length === 0) {
+      errors.push({ path, message: "fee array must not be empty" });
+      return errors;
+    }
+    for (let i = 0; i < fee.length; i++) {
+      errors.push(...validateSingleFee(fee[i]!, `${path}[${i}]`));
+    }
+  } else if (fee && typeof fee === "object") {
+    errors.push(...validateSingleFee(fee, path));
+  } else {
+    errors.push({ path, message: "fee is required" });
   }
 
   return errors;

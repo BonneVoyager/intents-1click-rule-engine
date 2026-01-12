@@ -1,6 +1,14 @@
 import { describe, it, expect } from "bun:test";
 import { RuleMatcher } from "./matcher";
-import type { FeeConfig, TokenInfo, TokenRegistry } from "./types";
+import type { Fee, FeeConfig, TokenInfo, TokenRegistry } from "./types";
+
+// Helper to get bps from fee (handles both single Fee and Fee[])
+function getBps(fee: Fee | Fee[]): number {
+  if (Array.isArray(fee)) {
+    return fee.reduce((sum, f) => sum + f.bps, 0);
+  }
+  return fee.bps;
+}
 
 // Mock token registry for tests
 function createMockRegistry(tokens: TokenInfo[]): TokenRegistry {
@@ -62,7 +70,7 @@ describe("RuleMatcher", () => {
       });
 
       expect(result.matched).toBe(false);
-      expect(result.fee.bps).toBe(20);
+      expect(getBps(result.fee)).toBe(20);
     });
 
     it("returns default fee when token not found in registry", () => {
@@ -79,7 +87,7 @@ describe("RuleMatcher", () => {
       });
 
       expect(result.matched).toBe(false);
-      expect(result.fee.bps).toBe(20);
+      expect(getBps(result.fee)).toBe(20);
       expect(result.matchDetails).toBeUndefined();
     });
   });
@@ -110,7 +118,7 @@ describe("RuleMatcher", () => {
 
       expect(result.matched).toBe(true);
       expect(result.rule?.id).toBe("usdc-to-usdc");
-      expect(result.fee.bps).toBe(10);
+      expect(getBps(result.fee)).toBe(10);
       expect(result.matchDetails?.originToken.blockchain).toBe("eth");
       expect(result.matchDetails?.destinationToken.blockchain).toBe("polygon");
     });
@@ -139,7 +147,7 @@ describe("RuleMatcher", () => {
       });
 
       expect(result.matched).toBe(false);
-      expect(result.fee.bps).toBe(20);
+      expect(getBps(result.fee)).toBe(20);
     });
   });
 
@@ -168,7 +176,7 @@ describe("RuleMatcher", () => {
       });
 
       expect(result.matched).toBe(true);
-      expect(result.fee.bps).toBe(5);
+      expect(getBps(result.fee)).toBe(5);
     });
   });
 
@@ -198,7 +206,7 @@ describe("RuleMatcher", () => {
 
       expect(result.matched).toBe(true);
       expect(result.rule?.id).toBe("eth-usdc-to-wbtc");
-      expect(result.fee.bps).toBe(3);
+      expect(getBps(result.fee)).toBe(3);
     });
   });
 
@@ -227,7 +235,7 @@ describe("RuleMatcher", () => {
       });
 
       expect(result.matched).toBe(true);
-      expect(result.fee.bps).toBe(12);
+      expect(getBps(result.fee)).toBe(12);
     });
   });
 
@@ -267,7 +275,7 @@ describe("RuleMatcher", () => {
 
       expect(result.matched).toBe(true);
       expect(result.rule?.id).toBe("no-priority");
-      expect(result.fee.bps).toBe(10);
+      expect(getBps(result.fee)).toBe(10);
     });
 
     it("first matching rule wins when priorities are equal", () => {
@@ -306,7 +314,7 @@ describe("RuleMatcher", () => {
 
       expect(result.matched).toBe(true);
       expect(result.rule?.id).toBe("first-rule");
-      expect(result.fee.bps).toBe(5);
+      expect(getBps(result.fee)).toBe(5);
     });
 
     it("higher priority rule wins over lower priority", () => {
@@ -345,7 +353,7 @@ describe("RuleMatcher", () => {
 
       expect(result.matched).toBe(true);
       expect(result.rule?.id).toBe("high-priority");
-      expect(result.fee.bps).toBe(5);
+      expect(getBps(result.fee)).toBe(5);
     });
 
     it("more specific assetId rule should have higher priority", () => {
@@ -384,7 +392,7 @@ describe("RuleMatcher", () => {
 
       expect(result.matched).toBe(true);
       expect(result.rule?.id).toBe("specific-eth-polygon");
-      expect(result.fee.bps).toBe(2);
+      expect(getBps(result.fee)).toBe(2);
     });
   });
 
@@ -413,7 +421,7 @@ describe("RuleMatcher", () => {
       });
 
       expect(result.matched).toBe(false);
-      expect(result.fee.bps).toBe(20);
+      expect(getBps(result.fee)).toBe(20);
     });
   });
 
@@ -444,7 +452,7 @@ describe("RuleMatcher", () => {
       });
 
       expect(result.matched).toBe(true);
-      expect(result.fee.bps).toBe(7);
+      expect(getBps(result.fee)).toBe(7);
     });
 
     it("does not match when blockchain differs in mixed rule", () => {
@@ -473,7 +481,7 @@ describe("RuleMatcher", () => {
       });
 
       expect(result.matched).toBe(false);
-      expect(result.fee.bps).toBe(20);
+      expect(getBps(result.fee)).toBe(20);
     });
 
     it("matches assetId + symbol combination", () => {
@@ -502,7 +510,7 @@ describe("RuleMatcher", () => {
       });
 
       expect(result.matched).toBe(true);
-      expect(result.fee.bps).toBe(4);
+      expect(getBps(result.fee)).toBe(4);
     });
   });
 
@@ -533,7 +541,7 @@ describe("RuleMatcher", () => {
       });
 
       expect(result.matched).toBe(true);
-      expect(result.fee.bps).toBe(5);
+      expect(getBps(result.fee)).toBe(5);
     });
 
     it("does not match when blockchain is not in array", () => {
@@ -562,7 +570,7 @@ describe("RuleMatcher", () => {
       });
 
       expect(result.matched).toBe(false);
-      expect(result.fee.bps).toBe(20);
+      expect(getBps(result.fee)).toBe(20);
     });
 
     it("matches when symbol is in array", () => {
@@ -590,7 +598,7 @@ describe("RuleMatcher", () => {
       });
 
       expect(result.matched).toBe(true);
-      expect(result.fee.bps).toBe(3);
+      expect(getBps(result.fee)).toBe(3);
     });
 
     it("combines array with negation (OR logic)", () => {
@@ -660,7 +668,7 @@ describe("RuleMatcher", () => {
       });
 
       expect(result.matched).toBe(true);
-      expect(result.fee.bps).toBe(10);
+      expect(getBps(result.fee)).toBe(10);
     });
 
     it("matches rule when current time is after valid_from", () => {
@@ -689,7 +697,7 @@ describe("RuleMatcher", () => {
       });
 
       expect(result.matched).toBe(true);
-      expect(result.fee.bps).toBe(5);
+      expect(getBps(result.fee)).toBe(5);
     });
 
     it("does not match rule when current time is before valid_from", () => {
@@ -718,7 +726,7 @@ describe("RuleMatcher", () => {
       });
 
       expect(result.matched).toBe(false);
-      expect(result.fee.bps).toBe(20);
+      expect(getBps(result.fee)).toBe(20);
     });
 
     it("matches rule when current time is before valid_until", () => {
@@ -747,7 +755,7 @@ describe("RuleMatcher", () => {
       });
 
       expect(result.matched).toBe(true);
-      expect(result.fee.bps).toBe(5);
+      expect(getBps(result.fee)).toBe(5);
     });
 
     it("does not match rule when current time is after valid_until", () => {
@@ -776,7 +784,7 @@ describe("RuleMatcher", () => {
       });
 
       expect(result.matched).toBe(false);
-      expect(result.fee.bps).toBe(20);
+      expect(getBps(result.fee)).toBe(20);
     });
 
     it("matches rule within valid_from and valid_until range", () => {
@@ -807,7 +815,7 @@ describe("RuleMatcher", () => {
       });
 
       expect(result.matched).toBe(true);
-      expect(result.fee.bps).toBe(0);
+      expect(getBps(result.fee)).toBe(0);
     });
   });
 
@@ -838,7 +846,7 @@ describe("RuleMatcher", () => {
       });
 
       expect(result.matched).toBe(true);
-      expect(result.fee.bps).toBe(5);
+      expect(getBps(result.fee)).toBe(5);
     });
 
     it("does not match when blockchain equals negated value", () => {
@@ -867,7 +875,7 @@ describe("RuleMatcher", () => {
       });
 
       expect(result.matched).toBe(false);
-      expect(result.fee.bps).toBe(20);
+      expect(getBps(result.fee)).toBe(20);
     });
 
     it("matches negated symbol", () => {
@@ -896,7 +904,7 @@ describe("RuleMatcher", () => {
       });
 
       expect(result.matched).toBe(true);
-      expect(result.fee.bps).toBe(15);
+      expect(getBps(result.fee)).toBe(15);
     });
 
     it("combines negation with other matchers", () => {
@@ -924,7 +932,7 @@ describe("RuleMatcher", () => {
         destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
       });
       expect(result1.matched).toBe(true);
-      expect(result1.fee.bps).toBe(8);
+      expect(getBps(result1.fee)).toBe(8);
 
       // ETH USDC → ETH USDC should NOT match (eth is eth)
       const result2 = matcher.match({
@@ -961,7 +969,73 @@ describe("RuleMatcher", () => {
 
       expect(result.matched).toBe(true);
       expect(result.rule?.id).toBe("eth-to-polygon");
-      expect(result.fee.bps).toBe(8);
+      expect(getBps(result.fee)).toBe(8);
+    });
+  });
+
+  describe("multiple fee recipients", () => {
+    it("returns fee array when rule has multiple fees", () => {
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
+        rules: [
+          {
+            id: "partner-split",
+            enabled: true,
+            match: {
+              in: { symbol: "USDC" },
+              out: { symbol: "USDC" },
+            },
+            fee: [
+              { type: "bps", bps: 7, recipient: "fees.near" },
+              { type: "bps", bps: 3, recipient: "partner.near" },
+            ],
+          },
+        ],
+      };
+
+      const matcher = new RuleMatcher(config, registry);
+      const result = matcher.match({
+        originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+      });
+
+      expect(result.matched).toBe(true);
+      expect(Array.isArray(result.fee)).toBe(true);
+      expect(getBps(result.fee)).toBe(10);
+
+      const fees = result.fee as Fee[];
+      expect(fees).toHaveLength(2);
+      expect(fees[0]?.bps).toBe(7);
+      expect(fees[0]?.recipient).toBe("fees.near");
+      expect(fees[1]?.bps).toBe(3);
+      expect(fees[1]?.recipient).toBe("partner.near");
+    });
+
+    it("returns default fee array when no rules match", () => {
+      const config: FeeConfig = {
+        version: "1.0.0",
+        default_fee: [
+          { type: "bps", bps: 15, recipient: "fees.near" },
+          { type: "bps", bps: 5, recipient: "treasury.near" },
+        ],
+        rules: [],
+      };
+
+      const matcher = new RuleMatcher(config, registry);
+      const result = matcher.match({
+        originAsset: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+        destinationAsset: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+      });
+
+      expect(result.matched).toBe(false);
+      expect(Array.isArray(result.fee)).toBe(true);
+      expect(getBps(result.fee)).toBe(20);
+
+      const fees = result.fee as Fee[];
+      expect(fees).toHaveLength(2);
+      expect(fees[0]?.recipient).toBe("fees.near");
+      expect(fees[1]?.recipient).toBe("treasury.near");
     });
   });
 

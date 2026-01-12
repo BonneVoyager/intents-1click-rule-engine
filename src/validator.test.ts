@@ -347,4 +347,108 @@ describe("validateConfig", () => {
       expect(result.valid).toBe(true);
     }
   });
+
+  it("accepts array of fee objects", () => {
+    const config: FeeConfig = {
+      version: "1.0.0",
+      default_fee: [
+        { type: "bps", bps: 14, recipient: "fees.near" },
+        { type: "bps", bps: 6, recipient: "partner.near" },
+      ],
+      rules: [],
+    };
+
+    const result = validateConfig(config);
+    expect(result.valid).toBe(true);
+  });
+
+  it("rejects empty fee array", () => {
+    const config: FeeConfig = {
+      version: "1.0.0",
+      default_fee: [],
+      rules: [],
+    };
+
+    const result = validateConfig(config);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.message.includes("must not be empty"))).toBe(true);
+  });
+
+  it("rejects fee array with invalid NEAR account", () => {
+    const config: FeeConfig = {
+      version: "1.0.0",
+      default_fee: [
+        { type: "bps", bps: 10, recipient: "INVALID!" },
+        { type: "bps", bps: 10, recipient: "partner.near" },
+      ],
+      rules: [],
+    };
+
+    const result = validateConfig(config);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.path.includes("default_fee[0].recipient"))).toBe(true);
+  });
+
+  it("rejects fee array with negative bps", () => {
+    const config: FeeConfig = {
+      version: "1.0.0",
+      default_fee: [
+        { type: "bps", bps: -5, recipient: "fees.near" },
+        { type: "bps", bps: 10, recipient: "partner.near" },
+      ],
+      rules: [],
+    };
+
+    const result = validateConfig(config);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.path.includes("default_fee[0].bps"))).toBe(true);
+  });
+
+  it("accepts single fee in array", () => {
+    const config: FeeConfig = {
+      version: "1.0.0",
+      default_fee: [{ type: "bps", bps: 20, recipient: "fees.near" }],
+      rules: [],
+    };
+
+    const result = validateConfig(config);
+    expect(result.valid).toBe(true);
+  });
+
+  it("accepts rule with array of fees", () => {
+    const config: FeeConfig = {
+      version: "1.0.0",
+      default_fee: { type: "bps", bps: 20, recipient: "fees.near" },
+      rules: [
+        {
+          id: "test-rule",
+          enabled: true,
+          match: { in: { symbol: "USDC" }, out: { symbol: "USDC" } },
+          fee: [
+            { type: "bps", bps: 6, recipient: "fees.near" },
+            { type: "bps", bps: 4, recipient: "partner.near" },
+          ],
+        },
+      ],
+    };
+
+    const result = validateConfig(config);
+    expect(result.valid).toBe(true);
+  });
+
+  it("validates each fee in array independently", () => {
+    const config: FeeConfig = {
+      version: "1.0.0",
+      default_fee: [
+        { type: "bps", bps: 10, recipient: "fees.near" },
+        { type: "bps", bps: -5, recipient: "INVALID!" },
+      ],
+      rules: [],
+    };
+
+    const result = validateConfig(config);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.path === "default_fee[1].bps")).toBe(true);
+    expect(result.errors.some((e) => e.path === "default_fee[1].recipient")).toBe(true);
+  });
 });

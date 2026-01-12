@@ -28,14 +28,14 @@ export interface Rule {
   priority?: number;
   description?: string;
   match: RuleMatch;
-  fee: Fee;
+  fee: Fee | Fee[];
   valid_from?: string;
   valid_until?: string;
 }
 
 export interface FeeConfig {
   version: string;
-  default_fee: Fee;
+  default_fee: Fee | Fee[];
   rules: Rule[];
 }
 
@@ -48,7 +48,7 @@ export interface SwapRequest {
 export interface MatchResult {
   matched: boolean;
   rule?: Rule;
-  fee: Fee;
+  fee: Fee | Fee[];
   matchDetails?: {
     originToken: TokenInfo;
     destinationToken: TokenInfo;

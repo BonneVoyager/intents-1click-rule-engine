@@ -81,6 +81,28 @@ Special patterns:
 - `"!value"` - negation, matches anything except `value`
 - `["a", "b"]` - array, matches any value in the list (OR logic)
 
+## Fee Structure
+
+Each fee requires a `type`, `bps`, and `recipient`. Fees can be a single object or an array for multiple recipients:
+
+### Single fee
+
+```typescript
+fee: { type: "bps", bps: 20, recipient: "fees.near" }
+```
+
+### Multiple fees (split between recipients)
+
+Each recipient can have their own fee amount:
+
+```typescript
+fee: [
+  { type: "bps", bps: 14, recipient: "fees.near" },     // 0.14%
+  { type: "bps", bps: 6, recipient: "partner.near" },   // 0.06%
+]
+// Total: 0.20%
+```
+
 ## Rule Examples
 
 ### Match by symbol (any chain)
@@ -231,6 +253,27 @@ Special patterns:
   },
   fee: { type: "bps", bps: 5, recipient: "fees.near" },
 }
+```
+
+### Multiple fee recipients
+
+Split fees between multiple accounts (e.g., platform + partner):
+
+```typescript
+{
+  id: "partner-referral",
+  enabled: true,
+  priority: 100,
+  match: {
+    in: { symbol: "USDC" },
+    out: { symbol: "USDC" },
+  },
+  fee: [
+    { type: "bps", bps: 7, recipient: "fees.near" },
+    { type: "bps", bps: 3, recipient: "partner.near" },
+  ],
+}
+// Total fee: 10 bps (0.10%), split 70/30
 ```
 
 ### Complete config example

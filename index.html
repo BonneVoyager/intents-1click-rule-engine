@@ -11,7 +11,7 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      max-width: 1200px;
+      max-width: 1400px;
       margin: 0 auto;
       padding: 20px;
       background: #f5f5f5;
@@ -22,9 +22,47 @@
       margin-bottom: 10px;
     }
 
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
     .subtitle {
       color: #666;
-      margin-bottom: 30px;
+      margin: 0;
+    }
+
+    .subtitle a {
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    .subtitle a:hover {
+      text-decoration: underline;
+    }
+
+    .token-status {
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 4px;
+      background: #e9ecef;
+    }
+
+    .token-status.loading {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .token-status.loaded {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .token-status.error {
+      background: #f8d7da;
+      color: #721c24;
     }
 
     .container {
@@ -33,7 +71,13 @@
       gap: 20px;
     }
 
-    @media (max-width: 900px) {
+    .right-pane {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    @media (max-width: 1000px) {
       .container {
         grid-template-columns: 1fr;
       }
@@ -54,6 +98,7 @@
 
     .form-group {
       margin-bottom: 15px;
+      position: relative;
     }
 
     label {
@@ -81,6 +126,47 @@
       outline: none;
       border-color: #007bff;
       box-shadow: 0 0 0 2px rgba(0,123,255,0.1);
+    }
+
+    .autocomplete-list {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #ddd;
+      border-top: none;
+      border-radius: 0 0 4px 4px;
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+    }
+
+    .autocomplete-list.show {
+      display: block;
+    }
+
+    .autocomplete-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 13px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .autocomplete-item:last-child {
+      border-bottom: none;
+    }
+
+    .autocomplete-item:hover,
+    .autocomplete-item.selected {
+      background: #f0f7ff;
+    }
+
+    .autocomplete-item small {
+      color: #666;
+      display: block;
+      font-size: 11px;
     }
 
     .checkbox-group {
@@ -196,7 +282,7 @@
     }
 
     .rule-list {
-      max-height: 400px;
+      max-height: 300px;
       overflow-y: auto;
     }
 
@@ -251,14 +337,10 @@
       margin-top: 10px;
     }
 
-    .output-section {
-      margin-top: 20px;
-    }
-
     .output-section textarea {
       font-family: 'Monaco', 'Menlo', monospace;
       font-size: 12px;
-      height: 300px;
+      height: 250px;
       resize: vertical;
     }
 
@@ -285,25 +367,8 @@
       font-size: 12px;
       color: #666;
       margin-top: 4px;
-    }
-
-    .tag {
-      display: inline-block;
-      background: #e9ecef;
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-size: 11px;
-      margin-right: 4px;
-    }
-
-    .tag.wildcard {
-      background: #d4edda;
-      color: #155724;
-    }
-
-    .tag.negation {
-      background: #f8d7da;
-      color: #721c24;
+      position: relative;
+      z-index: 1;
     }
 
     .empty-state {
@@ -316,6 +381,7 @@
       display: flex;
       gap: 5px;
       margin-bottom: 15px;
+      flex-wrap: wrap;
     }
 
     .tab {
@@ -339,11 +405,94 @@
     .tab-content.active {
       display: block;
     }
+
+    .tester-section {
+      background: #e8f4fd;
+      border-radius: 6px;
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+
+    .tester-section h3 {
+      margin: 0 0 15px 0;
+      font-size: 14px;
+      color: #0c5460;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .test-result {
+      background: white;
+      border-radius: 6px;
+      padding: 15px;
+      margin-top: 15px;
+    }
+
+    .test-result.matched {
+      border-left: 4px solid #28a745;
+    }
+
+    .test-result.default {
+      border-left: 4px solid #ffc107;
+    }
+
+    .test-result.error {
+      border-left: 4px solid #dc3545;
+    }
+
+    .test-result-header {
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .test-result-header.matched {
+      color: #28a745;
+    }
+
+    .test-result-header.default {
+      color: #856404;
+    }
+
+    .test-result-header.error {
+      color: #dc3545;
+    }
+
+    .test-result-details {
+      font-size: 13px;
+      color: #666;
+    }
+
+    .test-result-details dt {
+      font-weight: 500;
+      color: #333;
+      margin-top: 8px;
+    }
+
+    .test-result-details dd {
+      margin: 4px 0 0 0;
+    }
+
+    .token-preview {
+      background: #f8f9fa;
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      margin-top: 5px;
+    }
+
+    .token-preview code {
+      font-family: 'Monaco', 'Menlo', monospace;
+    }
   </style>
 </head>
 <body>
-  <h1>Fee Rule Builder</h1>
-  <p class="subtitle">Build fee configuration rules for NEAR Intents 1Click API</p>
+  <div class="header">
+    <div>
+      <h1>Fee Rule Builder</h1>
+      <p class="subtitle">Build fee configuration rules for <a href="https://docs.near-intents.org/near-intents/integration/distribution-channels/1click-api" target="_blank">NEAR Intents 1Click API</a></p>
+    </div>
+    <div id="tokenStatus" class="token-status loading">Loading tokens...</div>
+  </div>
 
   <div class="container">
     <div class="panel">
@@ -392,16 +541,18 @@
           <h3>Match: Input Token (in)</h3>
           <div class="form-group">
             <label>Blockchain</label>
-            <input type="text" id="inBlockchain" placeholder="eth, *, !eth, or eth,arb,base">
-            <div class="help-text">Use * for any, ! prefix to exclude, comma for multiple</div>
+            <input type="text" id="inBlockchain" placeholder="eth, *, !eth, or eth,arb,base" autocomplete="off">
+            <div class="autocomplete-list" id="inBlockchainAC"></div>
           </div>
           <div class="form-group">
             <label>Symbol</label>
-            <input type="text" id="inSymbol" placeholder="USDC, *, !WBTC, or USDC,USDT,DAI">
+            <input type="text" id="inSymbol" placeholder="USDC, *, !WBTC, or USDC,USDT,DAI" autocomplete="off">
+            <div class="autocomplete-list" id="inSymbolAC"></div>
           </div>
           <div class="form-group">
             <label>Asset ID (exact)</label>
-            <input type="text" id="inAssetId" placeholder="nep141:eth-0x...omft.near">
+            <input type="text" id="inAssetId" placeholder="nep141:eth-0x...omft.near" autocomplete="off">
+            <div class="autocomplete-list" id="inAssetIdAC"></div>
           </div>
         </div>
 
@@ -409,15 +560,18 @@
           <h3>Match: Output Token (out)</h3>
           <div class="form-group">
             <label>Blockchain</label>
-            <input type="text" id="outBlockchain" placeholder="eth, *, !eth, or eth,arb,base">
+            <input type="text" id="outBlockchain" placeholder="eth, *, !eth, or eth,arb,base" autocomplete="off">
+            <div class="autocomplete-list" id="outBlockchainAC"></div>
           </div>
           <div class="form-group">
             <label>Symbol</label>
-            <input type="text" id="outSymbol" placeholder="USDC, *, !WBTC, or USDC,USDT,DAI">
+            <input type="text" id="outSymbol" placeholder="USDC, *, !WBTC, or USDC,USDT,DAI" autocomplete="off">
+            <div class="autocomplete-list" id="outSymbolAC"></div>
           </div>
           <div class="form-group">
             <label>Asset ID (exact)</label>
-            <input type="text" id="outAssetId" placeholder="nep141:eth-0x...omft.near">
+            <input type="text" id="outAssetId" placeholder="nep141:eth-0x...omft.near" autocomplete="off">
+            <div class="autocomplete-list" id="outAssetIdAC"></div>
           </div>
         </div>
 
@@ -458,44 +612,444 @@
       </form>
     </div>
 
-    <div class="panel">
-      <div class="tabs">
-        <button class="tab active" onclick="switchTab('rules')">Rules</button>
-        <button class="tab" onclick="switchTab('output')">JSON Output</button>
-        <button class="tab" onclick="switchTab('import')">Import</button>
-      </div>
-
-      <div id="rulesTab" class="tab-content active">
-        <div id="ruleList" class="rule-list">
-          <div class="empty-state">No rules yet. Add your first rule!</div>
+    <div class="right-pane">
+      <div class="panel">
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab('rules')">Rules</button>
+          <button class="tab" onclick="switchTab('output')">JSON Output</button>
+          <button class="tab" onclick="switchTab('import')">Import</button>
         </div>
-      </div>
 
-      <div id="outputTab" class="tab-content">
-        <div class="output-section">
-          <textarea id="jsonOutput" readonly></textarea>
-          <div class="btn-group">
-            <button class="btn btn-success" onclick="copyJson()">Copy JSON</button>
-            <button class="btn btn-secondary" onclick="downloadJson()">Download</button>
+        <div id="rulesTab" class="tab-content active">
+          <div id="ruleList" class="rule-list">
+            <div class="empty-state">No rules yet. Add your first rule!</div>
           </div>
         </div>
+
+        <div id="outputTab" class="tab-content">
+          <div class="output-section">
+            <textarea id="jsonOutput" readonly></textarea>
+            <div class="btn-group">
+              <button class="btn btn-success" onclick="copyJson()">Copy JSON</button>
+              <button class="btn btn-secondary" onclick="downloadJson()">Download</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="importTab" class="tab-content">
+          <div class="form-group">
+            <label>Paste JSON Configuration</label>
+            <textarea id="jsonImport" placeholder='{"version": "1.0.0", "default_fee": {...}, "rules": [...]}'></textarea>
+          </div>
+          <button class="btn btn-primary" onclick="importJson()">Import Configuration</button>
+        </div>
       </div>
 
-      <div id="importTab" class="tab-content">
+      <div class="panel">
+        <h2>Test Rules</h2>
         <div class="form-group">
-          <label>Paste JSON Configuration</label>
-          <textarea id="jsonImport" placeholder='{"version": "1.0.0", "default_fee": {...}, "rules": [...]}'></textarea>
+          <label>Origin Asset</label>
+          <input type="text" id="testOriginAsset" placeholder="Select or paste assetId" autocomplete="off">
+          <div class="autocomplete-list" id="testOriginAssetAC"></div>
+          <div id="testOriginPreview" class="token-preview" style="display:none;"></div>
         </div>
-        <button class="btn btn-primary" onclick="importJson()">Import Configuration</button>
+        <div class="form-group">
+          <label>Destination Asset</label>
+          <input type="text" id="testDestinationAsset" placeholder="Select or paste assetId" autocomplete="off">
+          <div class="autocomplete-list" id="testDestinationAssetAC"></div>
+          <div id="testDestinationPreview" class="token-preview" style="display:none;"></div>
+        </div>
+        <button class="btn btn-primary" onclick="runTest()">Test Rules</button>
+        <div id="testResultContainer"></div>
       </div>
     </div>
   </div>
 
   <script>
+    // State
     let rules = [];
     let editingIndex = -1;
     let feeItemCount = 1;
+    let tokens = [];
+    let blockchains = [];
+    let symbols = [];
+    let tokensByAssetId = {};
 
+    // Token Registry
+    const TOKEN_REGISTRY_URL = 'https://1click.chaindefuser.com/v0/tokens';
+
+    async function loadTokens() {
+      const status = document.getElementById('tokenStatus');
+      try {
+        const response = await fetch(TOKEN_REGISTRY_URL);
+        if (!response.ok) throw new Error('Failed to fetch');
+        tokens = await response.json();
+
+        // Build indexes
+        const bcSet = new Set();
+        const symSet = new Set();
+        tokens.forEach(t => {
+          bcSet.add(t.blockchain);
+          symSet.add(t.symbol);
+          tokensByAssetId[t.assetId] = t;
+        });
+        blockchains = [...bcSet].sort();
+        symbols = [...symSet].sort();
+
+        status.textContent = `${tokens.length} tokens loaded`;
+        status.className = 'token-status loaded';
+      } catch (e) {
+        status.textContent = 'Failed to load tokens';
+        status.className = 'token-status error';
+        console.error('Token load error:', e);
+      }
+    }
+
+    // Autocomplete
+    function setupAutocomplete(inputId, listId, getItems) {
+      const input = document.getElementById(inputId);
+      const list = document.getElementById(listId);
+      let selectedIndex = -1;
+
+      input.addEventListener('focus', () => showAutocomplete());
+      input.addEventListener('input', () => showAutocomplete());
+      input.addEventListener('blur', () => {
+        setTimeout(() => list.classList.remove('show'), 200);
+      });
+
+      input.addEventListener('keydown', (e) => {
+        const items = list.querySelectorAll('.autocomplete-item');
+        if (!items.length) return;
+
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+          updateSelection(items);
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          selectedIndex = Math.max(selectedIndex - 1, 0);
+          updateSelection(items);
+        } else if (e.key === 'Enter' && selectedIndex >= 0) {
+          e.preventDefault();
+          items[selectedIndex].click();
+        } else if (e.key === 'Escape') {
+          list.classList.remove('show');
+        }
+      });
+
+      function updateSelection(items) {
+        items.forEach((item, i) => {
+          item.classList.toggle('selected', i === selectedIndex);
+        });
+        if (selectedIndex >= 0) {
+          items[selectedIndex].scrollIntoView({ block: 'nearest' });
+        }
+      }
+
+      function showAutocomplete() {
+        const value = input.value.toLowerCase();
+        const lastValue = value.split(',').pop().trim();
+        const items = getItems(lastValue);
+
+        if (items.length === 0) {
+          list.classList.remove('show');
+          return;
+        }
+
+        selectedIndex = -1;
+        list.innerHTML = items.slice(0, 50).map(item => {
+          if (typeof item === 'string') {
+            return `<div class="autocomplete-item" data-value="${item}">${item}</div>`;
+          }
+          return `<div class="autocomplete-item" data-value="${item.value}">
+            ${item.label}
+            ${item.detail ? `<small>${item.detail}</small>` : ''}
+          </div>`;
+        }).join('');
+
+        list.querySelectorAll('.autocomplete-item').forEach(item => {
+          item.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            const val = item.dataset.value;
+            const parts = input.value.split(',');
+            parts.pop();
+            parts.push(val);
+            input.value = parts.filter(p => p.trim()).join(', ');
+            if (parts.length > 1) input.value += ', ';
+            list.classList.remove('show');
+            input.dispatchEvent(new Event('change'));
+          });
+        });
+
+        list.classList.add('show');
+      }
+    }
+
+    function getBlockchainItems(query, filterBlockchain) {
+      if (!query) return blockchains.map(b => ({ value: b, label: b }));
+      return blockchains
+        .filter(b => b.toLowerCase().includes(query))
+        .map(b => ({ value: b, label: b }));
+    }
+
+    function getSymbolItems(query, filterBlockchain) {
+      let filteredTokens = tokens;
+
+      // Filter by blockchain if specified
+      if (filterBlockchain && filterBlockchain !== '*' && !filterBlockchain.startsWith('!')) {
+        const bcList = filterBlockchain.split(',').map(b => b.trim().toLowerCase());
+        filteredTokens = tokens.filter(t => bcList.includes(t.blockchain.toLowerCase()));
+      }
+
+      // Get unique symbols from filtered tokens
+      const filteredSymbols = [...new Set(filteredTokens.map(t => t.symbol))].sort();
+
+      if (!query) return filteredSymbols.slice(0, 30).map(s => ({ value: s, label: s }));
+      return filteredSymbols
+        .filter(s => s.toLowerCase().includes(query))
+        .map(s => ({ value: s, label: s }));
+    }
+
+    function getAssetIdItems(query, filterBlockchain) {
+      let filteredTokens = tokens;
+
+      // Filter by blockchain if specified
+      if (filterBlockchain && filterBlockchain !== '*' && !filterBlockchain.startsWith('!')) {
+        const bcList = filterBlockchain.split(',').map(b => b.trim().toLowerCase());
+        filteredTokens = tokens.filter(t => bcList.includes(t.blockchain.toLowerCase()));
+      }
+
+      if (!query) return filteredTokens.slice(0, 30).map(t => ({
+        value: t.assetId,
+        label: `${t.symbol} (${t.blockchain})`,
+        detail: t.assetId.length > 50 ? t.assetId.slice(0, 25) + '...' + t.assetId.slice(-20) : t.assetId
+      }));
+      return filteredTokens
+        .filter(t =>
+          t.assetId.toLowerCase().includes(query) ||
+          t.symbol.toLowerCase().includes(query) ||
+          t.blockchain.toLowerCase().includes(query)
+        )
+        .slice(0, 30)
+        .map(t => ({
+          value: t.assetId,
+          label: `${t.symbol} (${t.blockchain})`,
+          detail: t.assetId.length > 50 ? t.assetId.slice(0, 25) + '...' + t.assetId.slice(-20) : t.assetId
+        }));
+    }
+
+    // Initialize autocomplete
+    function initAutocomplete() {
+      // For blockchain fields, no filter needed
+      setupAutocomplete('inBlockchain', 'inBlockchainAC', (q) => getBlockchainItems(q));
+      setupAutocomplete('outBlockchain', 'outBlockchainAC', (q) => getBlockchainItems(q));
+
+      // For symbol fields, filter by selected blockchain
+      setupAutocomplete('inSymbol', 'inSymbolAC', (q) => {
+        const bc = document.getElementById('inBlockchain').value.trim();
+        return getSymbolItems(q, bc);
+      });
+      setupAutocomplete('outSymbol', 'outSymbolAC', (q) => {
+        const bc = document.getElementById('outBlockchain').value.trim();
+        return getSymbolItems(q, bc);
+      });
+
+      // For assetId fields, filter by selected blockchain
+      setupAutocomplete('inAssetId', 'inAssetIdAC', (q) => {
+        const bc = document.getElementById('inBlockchain').value.trim();
+        return getAssetIdItems(q, bc);
+      });
+      setupAutocomplete('outAssetId', 'outAssetIdAC', (q) => {
+        const bc = document.getElementById('outBlockchain').value.trim();
+        return getAssetIdItems(q, bc);
+      });
+
+      // Tester assetId fields
+      setupAutocomplete('testOriginAsset', 'testOriginAssetAC', (q) => getAssetIdItems(q));
+      setupAutocomplete('testDestinationAsset', 'testDestinationAssetAC', (q) => getAssetIdItems(q));
+
+      // When assetId is entered, disable blockchain/symbol (assetId is most specific)
+      setupAssetIdFieldBehavior('in');
+      setupAssetIdFieldBehavior('out');
+
+      // Token preview for tester
+      ['testOriginAsset', 'testDestinationAsset'].forEach(id => {
+        const input = document.getElementById(id);
+        const preview = document.getElementById(id.replace('Asset', 'Preview'));
+        input.addEventListener('change', () => updateTokenPreview(input, preview));
+        input.addEventListener('input', () => updateTokenPreview(input, preview));
+      });
+    }
+
+    function setupAssetIdFieldBehavior(prefix) {
+      const blockchainInput = document.getElementById(prefix + 'Blockchain');
+      const symbolInput = document.getElementById(prefix + 'Symbol');
+      const assetIdInput = document.getElementById(prefix + 'AssetId');
+
+      function updateFieldStates() {
+        const hasAssetId = assetIdInput.value.trim() !== '';
+
+        blockchainInput.disabled = hasAssetId;
+        symbolInput.disabled = hasAssetId;
+
+        if (hasAssetId) {
+          blockchainInput.value = '';
+          symbolInput.value = '';
+          blockchainInput.style.opacity = '0.5';
+          symbolInput.style.opacity = '0.5';
+        } else {
+          blockchainInput.style.opacity = '1';
+          symbolInput.style.opacity = '1';
+        }
+      }
+
+      assetIdInput.addEventListener('input', updateFieldStates);
+      assetIdInput.addEventListener('change', updateFieldStates);
+    }
+
+    function updateTokenPreview(input, preview) {
+      const token = tokensByAssetId[input.value.trim()];
+      if (token) {
+        preview.innerHTML = `<code>${token.symbol}</code> on <code>${token.blockchain}</code> (${token.decimals} decimals)`;
+        preview.style.display = 'block';
+      } else {
+        preview.style.display = 'none';
+      }
+    }
+
+    // Rule matching logic (simplified version for testing)
+    function matchesSinglePattern(pattern, value) {
+      if (pattern === '*') return true;
+      if (pattern.startsWith('!')) {
+        return value !== pattern.slice(1);
+      }
+      return pattern === value;
+    }
+
+    function matchesValue(pattern, value) {
+      if (Array.isArray(pattern)) {
+        return pattern.some(p => matchesSinglePattern(p, value));
+      }
+      return matchesSinglePattern(pattern, value);
+    }
+
+    function matchesToken(matcher, token) {
+      if (matcher.assetId && !matchesSinglePattern(matcher.assetId, token.assetId)) {
+        return false;
+      }
+      if (matcher.blockchain && !matchesValue(matcher.blockchain, token.blockchain)) {
+        return false;
+      }
+      if (matcher.symbol && !matchesValue(matcher.symbol, token.symbol)) {
+        return false;
+      }
+      return true;
+    }
+
+    function isRuleValidNow(rule) {
+      const now = Date.now();
+      if (rule.valid_from) {
+        const from = new Date(rule.valid_from).getTime();
+        if (now < from) return false;
+      }
+      if (rule.valid_until) {
+        const until = new Date(rule.valid_until).getTime();
+        if (now > until) return false;
+      }
+      return true;
+    }
+
+    function runTest() {
+      const originAsset = document.getElementById('testOriginAsset').value.trim();
+      const destinationAsset = document.getElementById('testDestinationAsset').value.trim();
+      const container = document.getElementById('testResultContainer');
+
+      if (!originAsset || !destinationAsset) {
+        container.innerHTML = `<div class="test-result error">
+          <div class="test-result-header error">Missing Input</div>
+          <div class="test-result-details">Please select both origin and destination assets.</div>
+        </div>`;
+        return;
+      }
+
+      const originToken = tokensByAssetId[originAsset];
+      const destToken = tokensByAssetId[destinationAsset];
+
+      if (!originToken || !destToken) {
+        container.innerHTML = `<div class="test-result error">
+          <div class="test-result-header error">Token Not Found</div>
+          <div class="test-result-details">
+            ${!originToken ? `<p>Origin asset not found in registry: ${originAsset}</p>` : ''}
+            ${!destToken ? `<p>Destination asset not found in registry: ${destinationAsset}</p>` : ''}
+          </div>
+        </div>`;
+        return;
+      }
+
+      // Sort rules by priority
+      const sortedRules = [...rules].sort((a, b) => (b.priority ?? 100) - (a.priority ?? 100));
+
+      // Find matching rule
+      let matchedRule = null;
+      for (const rule of sortedRules) {
+        if (!rule.enabled) continue;
+        if (!isRuleValidNow(rule)) continue;
+
+        const inMatches = matchesToken(rule.match.in, originToken);
+        const outMatches = matchesToken(rule.match.out, destToken);
+
+        if (inMatches && outMatches) {
+          matchedRule = rule;
+          break;
+        }
+      }
+
+      const defaultFee = {
+        type: 'bps',
+        bps: parseInt(document.getElementById('defaultBps').value) || 20,
+        recipient: document.getElementById('defaultRecipient').value.trim() || 'fees.near'
+      };
+
+      if (matchedRule) {
+        const fee = matchedRule.fee;
+        const totalBps = Array.isArray(fee) ? fee.reduce((sum, f) => sum + f.bps, 0) : fee.bps;
+
+        container.innerHTML = `<div class="test-result matched">
+          <div class="test-result-header matched">Rule Matched: ${matchedRule.id}</div>
+          <dl class="test-result-details">
+            <dt>Priority</dt>
+            <dd>${matchedRule.priority ?? 100}</dd>
+            <dt>Fee</dt>
+            <dd>${totalBps} bps (${(totalBps / 100).toFixed(2)}%)</dd>
+            <dt>Recipient(s)</dt>
+            <dd>${Array.isArray(fee) ? fee.map(f => `${f.recipient} (${f.bps} bps)`).join(', ') : fee.recipient}</dd>
+            <dt>Origin Token</dt>
+            <dd>${originToken.symbol} on ${originToken.blockchain}</dd>
+            <dt>Destination Token</dt>
+            <dd>${destToken.symbol} on ${destToken.blockchain}</dd>
+            ${matchedRule.description ? `<dt>Description</dt><dd>${matchedRule.description}</dd>` : ''}
+          </dl>
+        </div>`;
+      } else {
+        container.innerHTML = `<div class="test-result default">
+          <div class="test-result-header default">No Rule Matched - Using Default Fee</div>
+          <dl class="test-result-details">
+            <dt>Fee</dt>
+            <dd>${defaultFee.bps} bps (${(defaultFee.bps / 100).toFixed(2)}%)</dd>
+            <dt>Recipient</dt>
+            <dd>${defaultFee.recipient}</dd>
+            <dt>Origin Token</dt>
+            <dd>${originToken.symbol} on ${originToken.blockchain}</dd>
+            <dt>Destination Token</dt>
+            <dd>${destToken.symbol} on ${destToken.blockchain}</dd>
+            <dt>Rules Checked</dt>
+            <dd>${sortedRules.filter(r => r.enabled).length} enabled rules</dd>
+          </dl>
+        </div>`;
+      }
+    }
+
+    // Rule form helpers
     function parseMatchValue(value) {
       if (!value || value.trim() === '') return null;
       const trimmed = value.trim();
@@ -700,6 +1254,19 @@
         document.getElementById('validUntil').value = rule.valid_until.slice(0, 16);
       }
 
+      // Update field states based on assetId values
+      ['in', 'out'].forEach(prefix => {
+        const blockchainInput = document.getElementById(prefix + 'Blockchain');
+        const symbolInput = document.getElementById(prefix + 'Symbol');
+        const assetIdInput = document.getElementById(prefix + 'AssetId');
+        const hasAssetId = assetIdInput.value.trim() !== '';
+
+        blockchainInput.disabled = hasAssetId;
+        symbolInput.disabled = hasAssetId;
+        blockchainInput.style.opacity = hasAssetId ? '0.5' : '1';
+        symbolInput.style.opacity = hasAssetId ? '0.5' : '1';
+      });
+
       document.getElementById('submitBtn').textContent = 'Update Rule';
       document.getElementById('ruleId').focus();
     }
@@ -737,6 +1304,16 @@
       setFees({ type: 'bps', bps: 10, recipient: 'fees.near' });
       editingIndex = -1;
       document.getElementById('submitBtn').textContent = 'Add Rule';
+
+      // Re-enable blockchain/symbol fields
+      ['in', 'out'].forEach(prefix => {
+        const blockchainInput = document.getElementById(prefix + 'Blockchain');
+        const symbolInput = document.getElementById(prefix + 'Symbol');
+        blockchainInput.disabled = false;
+        symbolInput.disabled = false;
+        blockchainInput.style.opacity = '1';
+        symbolInput.style.opacity = '1';
+      });
     }
 
     function renderRules() {
@@ -849,6 +1426,7 @@
     document.getElementById('defaultBps').addEventListener('change', updateOutput);
     document.getElementById('defaultRecipient').addEventListener('change', updateOutput);
     updateOutput();
+    loadTokens().then(() => initAutocomplete());
   </script>
 </body>
 </html>

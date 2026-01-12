@@ -45,6 +45,11 @@ const result = engine.match({
 console.log(result.matched);    // true
 console.log(result.fee.bps);    // 10
 console.log(result.rule?.id);   // "usdc-swaps"
+
+// Calculate fee amount from bps
+import { calculateFee } from "intents-1click-rule-engine";
+
+const feeAmount = calculateFee("1000000", result.fee.bps); // "1000" (0.10% of 1000000)
 ```
 
 ## Token Registry

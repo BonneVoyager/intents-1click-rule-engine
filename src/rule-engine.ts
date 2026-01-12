@@ -5,6 +5,13 @@ import { validateConfig } from "./validator";
 
 const DEFAULT_TOKEN_REGISTRY_URL = "https://1click.chaindefuser.com/v0/tokens";
 const DEFAULT_CACHE_TTL_MS = 3600000; // 1 hour
+const BPS_DIVISOR = 10000n;
+
+export function calculateFee(amount: string | bigint, bps: number): string {
+  const amountBigInt = typeof amount === "string" ? BigInt(amount) : amount;
+  const fee = (amountBigInt * BigInt(bps)) / BPS_DIVISOR;
+  return fee.toString();
+}
 
 export interface RuleEngineOptions {
   tokenRegistryUrl?: string;

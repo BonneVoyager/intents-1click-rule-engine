@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test";
-import { RuleEngine } from "./rule-engine";
+import { RuleEngine, calculateFee } from "./rule-engine";
 import type { FeeConfig } from "./types";
 
 const validConfig: FeeConfig = {
@@ -117,5 +117,42 @@ describe("RuleEngine", () => {
       expect(result.matched).toBe(false);
       expect(result.fee.bps).toBe(20);
     });
+  });
+});
+
+describe("calculateFee", () => {
+  it("calculates fee from string amount", () => {
+    // 1000000 (1 USDC with 6 decimals) * 20 bps (0.20%) = 2000
+    expect(calculateFee("1000000", 20)).toBe("2000");
+  });
+
+  it("calculates fee from bigint amount", () => {
+    expect(calculateFee(1000000n, 20)).toBe("2000");
+  });
+
+  it("calculates 1% fee (100 bps)", () => {
+    // 1000000 * 100 / 10000 = 10000
+    expect(calculateFee("1000000", 100)).toBe("10000");
+  });
+
+  it("calculates 0.01% fee (1 bps)", () => {
+    // 1000000 * 1 / 10000 = 100
+    expect(calculateFee("1000000", 1)).toBe("100");
+  });
+
+  it("handles large amounts", () => {
+    // 1000000000000000000 (1 ETH with 18 decimals) * 25 bps = 2500000000000000
+    expect(calculateFee("1000000000000000000", 25)).toBe("2500000000000000");
+  });
+
+  it("returns 0 for 0 bps", () => {
+    expect(calculateFee("1000000", 0)).toBe("0");
+  });
+
+  it("truncates fractional results (rounds down)", () => {
+    // 100 * 3 / 10000 = 0.03 -> 0
+    expect(calculateFee("100", 3)).toBe("0");
+    // 10000 * 3 / 10000 = 3
+    expect(calculateFee("10000", 3)).toBe("3");
   });
 });

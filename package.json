@@ -1,0 +1,34 @@
+{
+  "name": "intents-1click-rule-engine",
+  "version": "1.0.0",
+  "description": "Fee configuration rule engine for NEAR Intents 1Click API",
+  "module": "index.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./index.ts",
+      "types": "./index.ts"
+    }
+  },
+  "files": [
+    "src",
+    "index.ts"
+  ],
+  "scripts": {
+    "test": "bun test",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "near",
+    "intents",
+    "1click",
+    "fee",
+    "rules",
+    "swap"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5"
+  }
+}

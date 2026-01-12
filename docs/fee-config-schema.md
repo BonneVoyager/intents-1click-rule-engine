@@ -76,16 +76,13 @@ Both `in` and `out` support the following optional properties:
 | `blockchain` | string | Blockchain identifier or `"*"` for any blockchain | `"ethereum"`, `"polygon"`, `"*"` |
 | `symbol` | string | Token symbol or `"*"` for any token | `"USDC"`, `"WBTC"`, `"*"` |
 | `assetId` | string | Exact asset identifier from token registry | `"nep141:eth-0xa0b8...omft.near"` |
-| `min` | string | Minimum input amount in base token units | `"1000000"` (1 USDC with 6 decimals) |
-| `max` | string | Maximum input amount in base token units | `"1000000000"` (1000 USDC with 6 decimals) |
 
 **Constraints:**
 1. All properties are optional, but **at least one** of `blockchain`, `symbol`, or `assetId` must be defined in each `in`/`out` block
 2. Token information is sourced from: `https://1click.chaindefuser.com/v0/tokens`
-3. Amount values (`min`/`max`) refer to the **input amount** in base units (accounting for token decimals)
-4. Use `"*"` as a wildcard to match any value for that property
+3. Use `"*"` as a wildcard to match any value for that property
 
-**Important:** The `min` and `max` fields only apply to the **input amount** (`in` side of the swap), not the output amount.
+**Important:** Rules match based on token identifiers only (blockchain, symbol, assetId), not on swap amounts.
 
 ### `fee` Object
 
@@ -118,14 +115,6 @@ Defines the fee when a rule matches.
 - Example: `"blockchain": "*"` matches all blockchains
 - Wildcard rules are less specific than exact matches
 
-### Amount Constraints
-
-- `min` and `max` apply only to the **input amount** (the `in` side)
-- Ranges are inclusive: `min <= input_amount <= max`
-- If only `min` is specified: `input_amount >= min`
-- If only `max` is specified: `input_amount <= max`
-- Amounts are in base token units (e.g., USDC with 6 decimals: `"1000000"` = 1 USDC)
-
 ## Complete Examples
 
 ### Example 1: Reduced Fee for USDC Swaps
@@ -156,18 +145,17 @@ Defines the fee when a rule matches.
 **Applies to:** Any USDC → USDC swap on any blockchain pair  
 **Fee:** 10 bps (0.10%)
 
-### Example 2: Specific Asset Pair with Amount Constraints
+### Example 2: Specific Asset Pair
 
 ```json
 {
   "id": "usdc-wbtc-eth-swaps",
   "enabled": true,
   "priority": 90,
+  "description": "Special fee for USDC to WBTC swaps on Ethereum",
   "match": {
     "in": {
-      "assetId": "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-      "min": "1000000",
-      "max": "1000000000"
+      "assetId": "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near"
     },
     "out": {
       "assetId": "nep141:eth-0x2260fac5e5542a773aa44fbcfedf7c193bc2c599.omft.near"
@@ -180,9 +168,7 @@ Defines the fee when a rule matches.
 }
 ```
 
-**Applies to:** USDC (Ethereum) → WBTC (Ethereum) swaps where:
-- Input amount is between 1 USDC and 1,000 USDC
-- Uses exact asset IDs for precision
+**Applies to:** USDC (Ethereum) → WBTC (Ethereum) swaps using exact asset IDs
 
 **Fee:** 10 bps (0.10%)
 
@@ -246,11 +232,10 @@ Defines the fee when a rule matches.
       "id": "usdc-wbtc-eth-swaps",
       "enabled": true,
       "priority": 90,
+      "description": "Special fee for USDC to WBTC swaps on Ethereum",
       "match": {
         "in": {
-          "assetId": "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
-          "min": "1000000",
-          "max": "1000000000"
+          "assetId": "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near"
         },
         "out": {
           "assetId": "nep141:eth-0x2260fac5e5542a773aa44fbcfedf7c193bc2c599.omft.near"
@@ -272,41 +257,161 @@ Defines the fee when a rule matches.
 1. **Unique IDs:** Each rule must have a unique `id`
 2. **Valid priorities:** Priority must be a non-negative number
 3. **Match constraints:** At least one of `blockchain`, `symbol`, or `assetId` must be present in both `in` and `out`
-4. **Valid amounts:** `min` and `max` must be valid numeric strings
-5. **Amount ordering:** If both specified, `min` must be ≤ `max`
-6. **Valid BPS:** Basis points must be non-negative numbers
-7. **Amount placement:** `min` and `max` should only appear in the `in` block (input side)
+4. **Valid BPS:** Basis points must be non-negative numbers
 
 ### Recommended Validations
 
 1. **Asset ID format:** Validate against known asset ID patterns from token registry
 2. **Blockchain names:** Validate against supported blockchain identifiers
 3. **Token symbols:** Check against token registry for existence
-4. **Decimal precision:** Ensure `min`/`max` values respect token decimal places
-5. **Wildcard usage:** Ensure `"*"` is only used for `blockchain` and `symbol`, not `assetId`
+4. **Wildcard usage:** Ensure `"*"` is only used for `blockchain` and `symbol`, not `assetId`
 
 ## Token Registry Reference
 
 Token information (blockchain names, symbols, asset IDs, decimals) is sourced from:
 
-**Endpoint:** `https://1click.chaindefuser.com/v0/tokens`
+**Endpoint:** `https://1click.chaindefuser.com/v0/tokens` (configurable)
 
-This endpoint provides:
-- Valid blockchain identifiers
-- Token symbols and their associated blockchains
-- Asset ID formats
-- Token decimal precision (for amount calculations)
+This endpoint returns an array of token objects with the following structure:
+
+```json
+{
+  "assetId": "nep141:eth-0xd9c2d319cd7e6177336b0a9c93c21cb48d84fb54.omft.near",
+  "decimals": 18,
+  "blockchain": "eth",
+  "symbol": "HAPI",
+  "price": 0.467292,
+  "priceUpdatedAt": "2026-01-12T13:22:38.411Z",
+  "contractAddress": "0xd9c2d319cd7e6177336b0a9c93c21cb48d84fb54"
+}
+```
+
+**Token Object Fields:**
+- `assetId`: Unique identifier for the asset (used in rules)
+- `decimals`: Number of decimal places for the token
+- `blockchain`: Blockchain identifier (e.g., `"eth"`, `"polygon"`, `"arb"`, `"sol"`)
+- `symbol`: Token symbol (e.g., `"USDC"`, `"WBTC"`, `"HAPI"`)
+- `price`: Current USD price (optional, for analytics)
+- `priceUpdatedAt`: Last price update timestamp
+- `contractAddress`: Token contract address on its native chain
+
+**Caching Requirements:**
+- Token registry data must be cached for **1 hour** after fetching
+- The endpoint URL must be **configurable** (in case it changes)
+- Cache must be refreshed before any validation if expired
 
 ## Implementation Notes
 
 ### For Rule Engine Developers
 
-1. **Caching:** Consider caching token registry data for performance
+1. **Token Registry Caching:**
+   - Fetch token list from configurable endpoint URL
+   - Cache for exactly 1 hour
+   - Refresh cache before validation if expired
+   - Build lookup maps for fast access:
+     ```javascript
+     {
+       byAssetId: Map<assetId, tokenInfo>,
+       byBlockchainSymbol: Map<`${blockchain}:${symbol}`, tokenInfo[]>
+     }
+     ```
+
 2. **Validation:** Validate configuration on load, not on every swap evaluation
 3. **Performance:** Index rules by priority for O(1) priority-based lookup
 4. **Logging:** Log which rule matched for debugging and analytics
-5. **Decimal handling:** Use arbitrary precision libraries for amount comparisons
-6. **Amount scope:** Remember that `min`/`max` only apply to the input amount, not output
+
+### Quote Request Integration
+
+The rule engine receives quote requests with the following structure:
+
+```json
+{
+  "originAsset": "nep141:arb-0xaf88d065e77c8cc2239327c5edb3a432268e5831.omft.near",
+  "destinationAsset": "nep141:sol-5ce3bf3a31af18be40ba30f721101b4341690186.omft.near",
+  "amount": "1000",
+  // ... other fields
+}
+```
+
+**Processing Steps:**
+
+1. **Map request to rule matching:**
+   ```
+   originAsset → in.assetId
+   destinationAsset → out.assetId
+   ```
+
+2. **Resolve asset details from token registry:**
+   ```
+   originAsset → {blockchain: "arb", symbol: "USDC", decimals: 6}
+   destinationAsset → {blockchain: "sol", symbol: "USDC", decimals: 6}
+   ```
+
+3. **Evaluate rules:**
+   - Check each enabled rule by priority (highest first)
+   - For each rule, match against:
+     - `in.assetId` vs `originAsset`
+     - `in.blockchain` vs origin token's blockchain
+     - `in.symbol` vs origin token's symbol
+     - `out.assetId` vs `destinationAsset`
+     - `out.blockchain` vs destination token's blockchain
+     - `out.symbol` vs destination token's symbol
+   
+4. **Return matched rule:**
+   ```json
+   {
+     "matchedRule": {
+       "id": "usdc-swaps-half-fee",
+       "priority": 100,
+       "fee": {
+         "type": "bps",
+         "bps": 10
+       }
+     },
+     "calculatedFee": {
+       "bps": 10,
+       "percentage": 0.10
+     }
+   }
+   ```
+
+**Example Matching Flow:**
+
+```javascript
+// Quote request
+{
+  "originAsset": "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+  "destinationAsset": "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+  "amount": "5000000"  // 5 USDC (6 decimals)
+}
+
+// Token registry lookup
+originToken = {
+  assetId: "nep141:eth-0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.omft.near",
+  blockchain: "eth",
+  symbol: "USDC",
+  decimals: 6
+}
+
+destinationToken = {
+  assetId: "nep141:polygon-0x2791bca1f2de4661ed88a30c99a7a9449aa84174.omft.near",
+  blockchain: "polygon",
+  symbol: "USDC",
+  decimals: 6
+}
+
+// Rule matching
+Rule: {
+  match: {
+    in: { blockchain: "*", symbol: "USDC" },
+    out: { blockchain: "*", symbol: "USDC" }
+  },
+  fee: { type: "bps", bps: 10 }
+}
+
+// Result: MATCHED
+// Return: { matchedRule: {...}, calculatedFee: { bps: 10 } }
+```
 
 ### For Configuration Managers
 
@@ -314,7 +419,16 @@ This endpoint provides:
 2. **Priority gaps:** Use priority gaps (100, 200, 300) to allow insertion of rules later
 3. **Disable vs Delete:** Use `"enabled": false` instead of deleting rules for audit trails
 4. **Documentation:** Always include `description` field for future reference
-5. **Amount constraints:** Only specify `min`/`max` in the `in` block for input amount filtering
+
+### Configuration Requirements
+
+```javascript
+{
+  "tokenRegistryUrl": "https://1click.chaindefuser.com/v0/tokens",
+  "tokenRegistryCacheTtl": 3600,  // 1 hour in seconds
+  "feeConfigPath": "./fee-config.json"
+}
+```
 
 ### Common Patterns
 
@@ -340,21 +454,7 @@ Matches any swap FROM USDC to any token.
 ```
 Matches any Ethereum → Polygon swap regardless of tokens.
 
-**Pattern 3: Large swap incentive**
-```json
-{
-  "match": {
-    "in": {
-      "symbol": "USDC",
-      "min": "100000000000"
-    },
-    "out": { "symbol": "*" }
-  }
-}
-```
-Discounted fee for swaps with 100,000+ USDC input.
-
-**Pattern 4: Exact pair optimization**
+**Pattern 3: Exact pair optimization**
 ```json
 {
   "match": {
@@ -395,22 +495,6 @@ For a USDC → WBTC swap:
 { "in": { "assetId": "nep141:eth-0x..." } }
 ```
 
-### Amount Edge Cases
-
-```json
-// Only min specified
-{ "in": { "symbol": "USDC", "min": "1000000" } }
-// Matches: 1 USDC, 10 USDC, 1000000 USDC, etc.
-
-// Only max specified
-{ "in": { "symbol": "USDC", "max": "1000000" } }
-// Matches: 0.01 USDC, 0.5 USDC, 1 USDC
-
-// Both specified
-{ "in": { "symbol": "USDC", "min": "1000000", "max": "1000000000" } }
-// Matches: 1 USDC to 1000 USDC (inclusive)
-```
-
 ## Future Enhancements (Not Currently Supported)
 
 These features may be added in future schema versions:
@@ -418,18 +502,205 @@ These features may be added in future schema versions:
 - **Bidirectional matching:** Single rule for A↔B swaps
 - **Array values:** `"blockchain": ["ethereum", "polygon"]`
 - **Negation:** `"blockchain": "!near"` (everything except NEAR)
-- **Output amount constraints:** `min`/`max` on the `out` side
 - **Time-based rules:** `valid_from` and `valid_until` timestamps
-- **Fee caps:** `min_absolute` and `max_absolute` fee limits
 - **Alternative fee types:** Flat fees, tiered fees, formula-based fees
 - **Metadata:** `created_at`, `created_by`, `tags`, etc.
 - **Conditional logic:** AND/OR combinations of conditions
 
+## API Integration
+
+### Quote Request Endpoint
+
+**URL:** `POST https://1click.chaindefuser.com/v0/quote`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_SECRET_TOKEN
+Content-Type: application/json
+Accept: */*
+```
+
+**Request Body:**
+```json
+{
+  "dry": true,
+  "depositMode": "SIMPLE",
+  "swapType": "EXACT_INPUT",
+  "slippageTolerance": 100,
+  "originAsset": "nep141:arb-0xaf88d065e77c8cc2239327c5edb3a432268e5831.omft.near",
+  "depositType": "ORIGIN_CHAIN",
+  "destinationAsset": "nep141:sol-5ce3bf3a31af18be40ba30f721101b4341690186.omft.near",
+  "amount": "1000",
+  "refundTo": "0x2527D02599Ba641c19FEa793cD0F167589a0f10D",
+  "refundType": "ORIGIN_CHAIN",
+  "recipient": "13QkxhNMrTPxoCkRdYdJ65tFuwXPhL5gLS2Z5Nr6gjRK",
+  "connectedWallets": ["0x123...", "0x456..."],
+  "sessionId": "session_abc123",
+  "virtualChainRecipient": "0xb4c2fbec9d610F9A3a9b843c47b1A8095ceC887C",
+  "virtualChainRefundRecipient": "0xb4c2fbec9d610F9A3a9b843c47b1A8095ceC887C",
+  "customRecipientMsg": "smart-contract-recipient.near",
+  "recipientType": "DESTINATION_CHAIN",
+  "deadline": "2019-08-24T14:15:22Z",
+  "referral": "referral",
+  "quoteWaitingTimeMs": 3000,
+  "appFees": [
+    {
+      "recipient": "recipient.near",
+      "fee": 100
+    }
+  ]
+}
+```
+
+**Relevant Fields for Fee Matching:**
+- `originAsset`: Maps to `in.assetId` in fee rules
+- `destinationAsset`: Maps to `out.assetId` in fee rules
+
+### Rule Engine Output
+
+When a rule matches, the engine should return:
+
+```json
+{
+  "matched": true,
+  "rule": {
+    "id": "usdc-swaps-half-fee",
+    "priority": 100,
+    "description": "Reduced fees for USDC swaps"
+  },
+  "fee": {
+    "type": "bps",
+    "bps": 10
+  },
+  "matchDetails": {
+    "originToken": {
+      "assetId": "nep141:arb-0xaf88d065e77c8cc2239327c5edb3a432268e5831.omft.near",
+      "blockchain": "arb",
+      "symbol": "USDC",
+      "decimals": 6
+    },
+    "destinationToken": {
+      "assetId": "nep141:sol-5ce3bf3a31af18be40ba30f721101b4341690186.omft.near",
+      "blockchain": "sol",
+      "symbol": "USDC",
+      "decimals": 6
+    },
+    "inputAmount": "1000"
+  }
+}
+```
+
+**When no rule matches:**
+```json
+{
+  "matched": false,
+  "fee": {
+    "type": "bps",
+    "bps": 20
+  },
+  "defaultFeeApplied": true
+}
+```
+
 ## Version History
+
+### Quote Request Endpoint
+
+**URL:** `POST https://1click.chaindefuser.com/v0/quote`
+
+**Headers:**
+```
+Authorization: Bearer YOUR_SECRET_TOKEN
+Content-Type: application/json
+Accept: */*
+```
+
+**Request Body:**
+```json
+{
+  "dry": true,
+  "depositMode": "SIMPLE",
+  "swapType": "EXACT_INPUT",
+  "slippageTolerance": 100,
+  "originAsset": "nep141:arb-0xaf88d065e77c8cc2239327c5edb3a432268e5831.omft.near",
+  "depositType": "ORIGIN_CHAIN",
+  "destinationAsset": "nep141:sol-5ce3bf3a31af18be40ba30f721101b4341690186.omft.near",
+  "amount": "1000",
+  "refundTo": "0x2527D02599Ba641c19FEa793cD0F167589a0f10D",
+  "refundType": "ORIGIN_CHAIN",
+  "recipient": "13QkxhNMrTPxoCkRdYdJ65tFuwXPhL5gLS2Z5Nr6gjRK",
+  "connectedWallets": ["0x123...", "0x456..."],
+  "sessionId": "session_abc123",
+  "virtualChainRecipient": "0xb4c2fbec9d610F9A3a9b843c47b1A8095ceC887C",
+  "virtualChainRefundRecipient": "0xb4c2fbec9d610F9A3a9b843c47b1A8095ceC887C",
+  "customRecipientMsg": "smart-contract-recipient.near",
+  "recipientType": "DESTINATION_CHAIN",
+  "deadline": "2019-08-24T14:15:22Z",
+  "referral": "referral",
+  "quoteWaitingTimeMs": 3000,
+  "appFees": [
+    {
+      "recipient": "recipient.near",
+      "fee": 100
+    }
+  ]
+}
+```
+
+**Relevant Fields for Fee Matching:**
+- `originAsset`: Maps to `in.assetId` in fee rules
+- `destinationAsset`: Maps to `out.assetId` in fee rules
+
+### Rule Engine Output
+
+When a rule matches, the engine should return:
+
+```json
+{
+  "matched": true,
+  "rule": {
+    "id": "usdc-swaps-half-fee",
+    "priority": 100,
+    "description": "Reduced fees for USDC swaps"
+  },
+  "fee": {
+    "type": "bps",
+    "bps": 10
+  },
+  "matchDetails": {
+    "originToken": {
+      "assetId": "nep141:arb-0xaf88d065e77c8cc2239327c5edb3a432268e5831.omft.near",
+      "blockchain": "arb",
+      "symbol": "USDC",
+      "decimals": 6
+    },
+    "destinationToken": {
+      "assetId": "nep141:sol-5ce3bf3a31af18be40ba30f721101b4341690186.omft.near",
+      "blockchain": "sol",
+      "symbol": "USDC",
+      "decimals": 6
+    },
+    "inputAmount": "1000"
+  }
+}
+```
+
+**When no rule matches:**
+```json
+{
+  "matched": false,
+  "fee": {
+    "type": "bps",
+    "bps": 20
+  },
+  "defaultFeeApplied": true
+}
+```
+
+## Changelog
 
 - **1.0.0** (Initial release)
   - Basic rule matching on blockchain, symbol, assetId
-  - Input amount constraints (min/max)
   - Priority-based rule evaluation
   - BPS-based fee calculation
   - Wildcard support with `"*"`

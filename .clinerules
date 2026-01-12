@@ -11,8 +11,6 @@ Key rules:
 - Write functional code and keep files structure simple and clean
 - Create extensive unit testing for all the functions with number of examples
 - All fee configurations must validate against the schema
-- Use `in`/`out` for swap directions (not `from`/`to`)
-- Amount constraints (`min`/`max`) only apply to input amounts
 - Priority determines rule evaluation order (higher = first)
 - At least one of blockchain/symbol/assetId must be specified
 - Keep versioning consistent and don't add any new feature unless explicitly mentioned

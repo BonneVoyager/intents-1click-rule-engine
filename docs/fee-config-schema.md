@@ -500,9 +500,6 @@ For a USDC → WBTC swap:
 These features may be added in future schema versions:
 
 - **Bidirectional matching:** Single rule for A↔B swaps
-- **Array values:** `"blockchain": ["ethereum", "polygon"]`
-- **Negation:** `"blockchain": "!near"` (everything except NEAR)
-- **Time-based rules:** `valid_from` and `valid_until` timestamps
 - **Alternative fee types:** Flat fees, tiered fees, formula-based fees
 - **Metadata:** `created_at`, `created_by`, `tags`, etc.
 - **Conditional logic:** AND/OR combinations of conditions

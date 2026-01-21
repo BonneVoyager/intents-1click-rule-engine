@@ -5,7 +5,9 @@
     "declaration": true,
     "declarationMap": true,
     "noEmit": false,
-    "allowImportingTsExtensions": false
+    "allowImportingTsExtensions": false,
+    "module": "ESNext",
+    "moduleResolution": "Bundler"
   },
   "include": ["index.ts", "src/**/*.ts"],
   "exclude": ["**/*.test.ts", "node_modules"]

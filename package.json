@@ -1,6 +1,6 @@
 {
   "name": "intents-1click-rule-engine",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Fee configuration rule engine for NEAR Intents 1Click API",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

@@ -3,20 +3,19 @@
   "version": "1.0.0",
   "description": "Fee configuration rule engine for NEAR Intents 1Click API",
   "main": "./dist/index.js",
-  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "type": "module",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
     }
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
     "prepublishOnly": "bun run build",
     "test": "bun test",
     "typecheck": "tsc --noEmit"

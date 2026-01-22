@@ -4,9 +4,18 @@ This project uses a custom fee configuration schema for NEAR Intents 1Click API.
 
 The complete schema specification is in `docs/fee-config-schema.md`.
 
-Key rules:
-- It's frontend/backend package used as NPM package
-- Use TypeScript and transpile to JavaScript with commonly used setup
+## Important: NPM Package Compatibility
+
+This is an **NPM package** that must work with both Node.js and frontend bundlers. When building:
+
+- Use `tsc` (TypeScript compiler) for building, NOT `bun build`
+- The build outputs CommonJS for maximum compatibility (works with Node.js and all major bundlers)
+- Standard TypeScript imports without file extensions
+
+## Key Rules
+
+- NPM package for both frontend and backend use
+- Use TypeScript and transpile with `tsc` to JavaScript (CommonJS)
 - Don't import any external dependencies
 - Write functional code and keep files structure simple and clean
 - Create extensive unit testing for all the functions with number of examples
@@ -14,20 +23,16 @@ Key rules:
 - Priority determines rule evaluation order (higher = first)
 - At least one of blockchain/symbol/assetId must be specified
 - Keep versioning consistent and don't add any new feature unless explicitly mentioned
-- Again, omit any features mentioned under "Future Enhancements" section
+- Omit any features mentioned under "Future Enhancements" section
 
-description: Use Bun instead of Node.js, npm, pnpm, or vite.
-globs: "*.ts, *.tsx, *.html, *.css, *.js, *.jsx, package.json"
-alwaysApply: false
+## Development Commands
 
-Default to using Bun instead of Node.js.
+Use Bun for local development:
 
-- Use `bun <file>` instead of `node <file>` or `ts-node <file>`
-- Use `bun test` instead of `jest` or `vitest`
-- Use `bun build <file.html|file.ts|file.css>` instead of `webpack` or `esbuild`
-- Use `bun install` instead of `npm install` or `yarn install` or `pnpm install`
-- Use `bun run <script>` instead of `npm run <script>` or `yarn run <script>` or `pnpm run <script>`
-- Bun automatically loads .env, so don't use dotenv.
+- `bun install` - Install dependencies
+- `bun run build` - Build the package (uses tsc, outputs CommonJS to dist/)
+- `bun test` - Run tests
+- `bun run typecheck` - Type check without emitting
 
 ## Testing
 

@@ -6,8 +6,11 @@
     "declarationMap": true,
     "noEmit": false,
     "allowImportingTsExtensions": false,
-    "module": "ESNext",
-    "moduleResolution": "Bundler"
+    "verbatimModuleSyntax": false,
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "target": "ES2020",
+    "esModuleInterop": true
   },
   "include": ["index.ts", "src/**/*.ts"],
   "exclude": ["**/*.test.ts", "node_modules"]

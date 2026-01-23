@@ -1,6 +1,17 @@
 import { describe, it, expect } from "bun:test";
 import { RuleEngine, calculateFee, calculateAmountAfterFee } from "./rule-engine";
-import type { Fee, FeeConfig } from "./types";
+import type { Fee, FeeConfig, TokenInfo, TokenRegistry } from "./types";
+
+// Mock token registry for isolated testing
+function createMockRegistry(tokens: TokenInfo[], fresh = true): TokenRegistry {
+  const byAssetId = new Map(tokens.map((t) => [t.assetId, t]));
+  return {
+    getToken: (assetId: string) => byAssetId.get(assetId),
+    isFresh: () => fresh,
+    ensureFresh: async () => {},
+    size: tokens.length,
+  };
+}
 
 // Helper to get bps from fee (handles both single Fee and Fee[])
 function getBps(fee: Fee | Fee[]): number {
@@ -92,36 +103,67 @@ describe("RuleEngine", () => {
       expect(() => new RuleEngine(invalidConfig)).toThrow("Invalid fee config");
     });
 
-    it("uses default token registry config when not provided", () => {
+    it("uses shared token registry when not provided", () => {
       const engine = new RuleEngine(validConfig);
       expect(engine).toBeDefined();
     });
 
-    it("accepts custom token registry options", () => {
+    it("accepts custom token registry", () => {
+      const mockRegistry = createMockRegistry([]);
       const engine = new RuleEngine(validConfig, {
-        tokenRegistryUrl: "https://custom-api.com/tokens",
-        tokenRegistryCacheTtlMs: 1800000,
+        tokenRegistry: mockRegistry,
       });
       expect(engine).toBeDefined();
-    });
-
-    it("accepts partial token registry options", () => {
-      const engine = new RuleEngine(validConfig, {
-        tokenRegistryCacheTtlMs: 1800000,
-      });
-      expect(engine).toBeDefined();
+      expect(engine.getTokenRegistrySize()).toBe(0);
     });
   });
 
   describe("match", () => {
     it("returns default fee when token not in registry", () => {
-      const engine = new RuleEngine(validConfig);
+      const mockRegistry = createMockRegistry([]);
+      const engine = new RuleEngine(validConfig, { tokenRegistry: mockRegistry });
 
       const result = engine.match({
         originAsset: "unknown-asset",
         destinationAsset: "another-unknown",
       });
 
+      expect(result.matched).toBe(false);
+      expect(getBps(result.fee)).toBe(20);
+    });
+
+    it("throws when registry is not ready", () => {
+      const staleRegistry = createMockRegistry([], false);
+      const engine = new RuleEngine(validConfig, { tokenRegistry: staleRegistry });
+
+      expect(() =>
+        engine.match({
+          originAsset: "unknown-asset",
+          destinationAsset: "another-unknown",
+        })
+      ).toThrow("Token registry is not ready. Call ensureReady() or use safeMatch() instead.");
+    });
+  });
+
+  describe("safeMatch", () => {
+    it("ensures ready and returns match result", async () => {
+      let ensureFreshCalled = false;
+      const mockRegistry: TokenRegistry = {
+        getToken: () => undefined,
+        isFresh: () => true,
+        ensureFresh: async () => {
+          ensureFreshCalled = true;
+        },
+        size: 0,
+      };
+      const engine = new RuleEngine(validConfig, { tokenRegistry: mockRegistry });
+
+      const result = await engine.safeMatch({
+        originAsset: "unknown-asset",
+        destinationAsset: "another-unknown",
+      });
+
+      expect(ensureFreshCalled).toBe(true);
       expect(result.matched).toBe(false);
       expect(getBps(result.fee)).toBe(20);
     });

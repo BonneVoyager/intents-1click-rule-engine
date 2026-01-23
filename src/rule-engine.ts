@@ -1,10 +1,8 @@
-import type { Fee, FeeConfig, SwapRequest, MatchResult } from "./types";
+import type { Fee, FeeConfig, SwapRequest, MatchResult, TokenRegistry } from "./types";
 import { RuleMatcher } from "./matcher";
-import { CachedTokenRegistry, type TokenRegistryConfig } from "./token-registry";
+import { sharedTokenRegistry } from "./token-registry";
 import { validateConfig } from "./validator";
 
-const DEFAULT_TOKEN_REGISTRY_URL = "https://1click.chaindefuser.com/v0/tokens";
-const DEFAULT_CACHE_TTL_MS = 3600000; // 1 hour
 const BPS_DIVISOR = 10000n;
 const MAX_BPS = 10000; // 100% fee cap
 
@@ -65,13 +63,16 @@ export function calculateAmountAfterFee(amount: string | bigint, bps: number): s
 }
 
 export interface RuleEngineOptions {
-  tokenRegistryUrl?: string;
-  tokenRegistryCacheTtlMs?: number;
+  /**
+   * Custom token registry instance. If not provided, uses the shared global registry.
+   * Useful for testing or when you need a separate token cache.
+   */
+  tokenRegistry?: TokenRegistry;
 }
 
 export class RuleEngine {
   private matcher: RuleMatcher;
-  private tokenRegistry: CachedTokenRegistry;
+  private tokenRegistry: TokenRegistry;
   private feeConfig: FeeConfig;
 
   constructor(feeConfig: FeeConfig, options?: RuleEngineOptions) {
@@ -81,15 +82,8 @@ export class RuleEngine {
     }
 
     this.feeConfig = feeConfig;
-    this.tokenRegistry = new CachedTokenRegistry({
-      url: options?.tokenRegistryUrl ?? DEFAULT_TOKEN_REGISTRY_URL,
-      cacheTtlMs: options?.tokenRegistryCacheTtlMs ?? DEFAULT_CACHE_TTL_MS,
-    });
+    this.tokenRegistry = options?.tokenRegistry ?? sharedTokenRegistry;
     this.matcher = new RuleMatcher(this.feeConfig, this.tokenRegistry);
-  }
-
-  async initialize(): Promise<void> {
-    await this.tokenRegistry.refresh();
   }
 
   async ensureReady(): Promise<void> {
@@ -97,16 +91,19 @@ export class RuleEngine {
   }
 
   match(request: SwapRequest): MatchResult {
+    if (!this.tokenRegistry.isFresh()) {
+      throw new Error("Token registry is not ready. Call ensureReady() or use safeMatch() instead.");
+    }
     return this.matcher.match(request);
   }
 
-  async matchWithRefresh(request: SwapRequest): Promise<MatchResult> {
+  async safeMatch(request: SwapRequest): Promise<MatchResult> {
     await this.ensureReady();
     return this.match(request);
   }
 
   getTokenRegistrySize(): number {
-    return this.tokenRegistry.size;
+    return this.tokenRegistry.size ?? 0;
   }
 
   getFeeConfig(): FeeConfig {

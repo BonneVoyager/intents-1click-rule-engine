@@ -36,8 +36,8 @@ export class CachedTokenRegistry implements TokenRegistry {
     this.config = config;
   }
 
-  private isCacheValid(): boolean {
-    return Date.now() - this.lastFetchTime < this.config.cacheTtlMs;
+  isFresh(): boolean {
+    return this.lastFetchTime > 0 && Date.now() - this.lastFetchTime < this.config.cacheTtlMs;
   }
 
   async refresh(): Promise<void> {
@@ -91,7 +91,7 @@ export class CachedTokenRegistry implements TokenRegistry {
   }
 
   async ensureFresh(): Promise<void> {
-    if (!this.isCacheValid()) {
+    if (!this.isFresh()) {
       await this.refresh();
     }
   }
@@ -100,11 +100,19 @@ export class CachedTokenRegistry implements TokenRegistry {
     return this.cache.get(assetId);
   }
 
-  getAllTokens(): TokenInfo[] {
-    return Array.from(this.cache.values());
-  }
-
   get size(): number {
     return this.cache.size;
   }
 }
+
+const DEFAULT_TOKEN_REGISTRY_URL = "https://1click.chaindefuser.com/v0/tokens";
+const DEFAULT_CACHE_TTL_MS = 3600000; // 1 hour
+
+/**
+ * Shared global token registry instance used by all RuleEngine instances by default.
+ * This avoids fetching the token list multiple times when multiple RuleEngine instances are created.
+ */
+export const sharedTokenRegistry = new CachedTokenRegistry({
+  url: DEFAULT_TOKEN_REGISTRY_URL,
+  cacheTtlMs: DEFAULT_CACHE_TTL_MS,
+});

@@ -81,4 +81,10 @@ export interface MatchResult {
 
 export interface TokenRegistry {
   getToken(assetId: string): TokenInfo | undefined;
+  /** Returns true if the registry has been loaded and is not stale. */
+  isFresh(): boolean;
+  /** Ensure the cache is fresh, refreshing if needed. */
+  ensureFresh(): Promise<void>;
+  /** Number of tokens in the registry. Optional. */
+  readonly size?: number;
 }

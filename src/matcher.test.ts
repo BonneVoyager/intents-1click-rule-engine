@@ -15,6 +15,8 @@ function createMockRegistry(tokens: TokenInfo[]): TokenRegistry {
   const byAssetId = new Map(tokens.map((t) => [t.assetId, t]));
   return {
     getToken: (assetId: string) => byAssetId.get(assetId),
+    isFresh: () => true,
+    ensureFresh: async () => {},
   };
 }
 
